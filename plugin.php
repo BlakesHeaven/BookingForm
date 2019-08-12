@@ -1,6 +1,6 @@
 <?php
 /**
- *  BookingFormV3
+ *  BookingForm
  *
  *  @package Bludit
  *  @subpackage Plugins
@@ -10,10 +10,10 @@
  *  @info plugin based on contact plugin by Frédéric K (http://flatboard.free.fr)
  *
  */
-class pluginBookingFormV3 extends Plugin {
-  private $eventName = '';  
-  private $senderEmail = '';
+class pluginBookingForm extends Plugin {
+  private $eventName = ''; 
   private $senderName = '';
+  private $senderEmail = '';
   //private $message = '';
   private $senderPhone = '';
   private $numberOfTickets = 0; 
@@ -251,7 +251,8 @@ class pluginBookingFormV3 extends Plugin {
         // if no error until now, then create and send email
         if(!$this->error){
           if(empty($this->getValue('smtphost'))) {
-            $this->success = $this->useSendmail();
+            $this->success = $this->useSendmail();		// $SentReceipt = false, ie to club
+			$this->success = $this->useSendmail(true);	// $SentReceipt = True, ie to sender
           } else{
             $this->success = $this->useSmtp();
           }
@@ -339,17 +340,27 @@ class pluginBookingFormV3 extends Plugin {
 
   private function validatePost(){
     global $L;
-    if(trim($this->senderName)==='')
-      $error = $L->get('Please enter your name');                            
+    if(trim($this->eventName)==='')
+		$error = $L->get('please-select-the-event').'<br>'; 
+    elseif(trim($this->senderName)==='')
+		$error = $L->get('please-enter-your-name').'<br>';                            
     elseif(trim($this->senderEmail)==='')
-      $error = $L->get('Please enter a valid email address');
+		$error = $L->get('please-enter-a-valid-email-address').'<br>';
     // elseif(trim($this->message)==='')
-      // $error = $L->get('Please enter the content of your message');
+      // $error = $L->get('please-enter-the-content-of-your-message');
+    elseif(trim($this->senderPhone)==='')
+		$error = $L->get('please-enter-phone-number').'<br>';
+    elseif(trim($this->numberOfTickets) < 1)
+		$error = $L->get('tickets-greater-than-zero').'<br>';
+    elseif(trim($this->paymantConfirmed) ==='No')
+		$error = $L->get('confirm-payment').'<br>';
+    elseif(trim($this->otherPartyNames) ==='' and trim($this->numberOfTickets) > 1)
+		$error = $L->get('other-party-names-needed').'<br>';
     elseif ($this->getValue('gdpr-checkbox') && !$_POST['gdpr-checkbox']) {
-      $error = $L->get('Please accept the privacy policy');
+		$error = $L->get('Please accept the privacy policy').'<br>';
     }
     elseif(!$this->reCaptchaResult){
-      $error = $L->get('Please check that you are not a robot');
+      $error = $L->get('please-check-that-you-are-not-a-robot');
     }
     else
       $error = false;
@@ -368,17 +379,17 @@ class pluginBookingFormV3 extends Plugin {
   private function getEmailText(){
     global $L;
     if($this->isHtml()) {
-		$emailText  = '<b>'.$L->get('booking-event')		.': </b>'.$this->eventName			.'<br>';
-		$emailText .= '<b>'.$L->get('booking-name')			.': </b>'.$this->senderName			.'<br>';
-		$emailText .= '<b>'.$L->get('booking-email')		.': </b>'.$this->senderEmail		.'<br>';
-		$emailText .= '<b>'.$L->get('booking-phone')		.': </b>'.$this->senderPhone		.'<br>';
-		$emailText .= '<b>'.$L->get('booking-tickets')		.': </b>'.$this->numberOfTickets	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-pickup')		.': </b>'.$this->pickupPoint    	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-payment')		.': </b>'.$this->paymantConfirmed	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-others')		.': </b>'.nl2br($this->otherPartyNames)	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-sit-near')		.': </b>'.nl2br($this->sittingNear ).'<br>';
-		$emailText .= '<b>'.$L->get('booking-needs')		.': </b>'.nl2br($this->specialNeeds).'<br>';
-//		$emailText .= '<b>'.$L->get('Your Message')			.': </b>'.nl2br($this->message)	.'<br>';	  
+		$emailText  = '<b>'.$L->get('booking-event')	.': </b>'.$this->eventName			.'<br>';
+		$emailText .= '<b>'.$L->get('booking-name')		.': </b>'.$this->senderName			.'<br>';
+		$emailText .= '<b>'.$L->get('booking-email')	.': </b>'.$this->senderEmail		.'<br>';
+		$emailText .= '<b>'.$L->get('booking-phone')	.': </b>'.$this->senderPhone		.'<br>';
+		$emailText .= '<b>'.$L->get('booking-tickets')	.': </b>'.$this->numberOfTickets	.'<br>';
+		$emailText .= '<b>'.$L->get('booking-pickup')	.': </b>'.$this->pickupPoint    	.'<br>';
+		$emailText .= '<b>'.$L->get('booking-payment')	.': </b>'.$this->paymantConfirmed	.'<br>';
+		$emailText .= '<b>'.$L->get('booking-others')	.': </b>'.nl2br($this->otherPartyNames)	.'<br>';
+		$emailText .= '<b>'.$L->get('booking-sit-near')	.': </b>'.nl2br($this->sittingNear ).'<br>';
+		$emailText .= '<b>'.$L->get('booking-needs')	.': </b>'.nl2br($this->specialNeeds).'<br>';
+//		$emailText .= '<b>'.$L->get('Your Message')		.': </b>'.nl2br($this->message)	.'<br>';	  
       if($this->getValue('gdpr-checkbox')){
         $emailText .= sanitize::htmlDecode($this->getValue('gdpr-checkbox-text')).'<br>';
       }
@@ -406,7 +417,7 @@ class pluginBookingFormV3 extends Plugin {
   private function frontendMessage(){
     global $L;
     if($this->success) {
-      $html = '<div class="alert alert-success">' .$L->get('thank-you-for-contact'). '</div>' ."\r\n";
+      $html = '<div class="alert alert-success">' .$L->get('booking-confirmation'). '</div>' ."\r\n";
     } elseif(!is_bool($this->error)) {
       $html = '<div class="alert alert-danger">'. $this->error. '</div>' ."\r\n";
     } elseif($this->error) {
@@ -418,25 +429,45 @@ class pluginBookingFormV3 extends Plugin {
   }
 
 
-	private function useSendmail(){
+	private function useSendmail($SentReceipt = false){
+		global $L;
 		$success = false;
 		$sendFrom = $this->getValue('sendEmailFrom');
 		$senderName = $this->senderName;
+		$subject = $this->getSubject();
 
 		// email headers
-		switch ($sendFrom)
-			{
-				case "fromTo":
-					$email_headers	= "From: $senderName <"		. $this->getValue('email')			.">".PHP_EOL;
-					$email_headers .= "Reply-To: $senderName <"	. $this->senderEmail				.">".PHP_EOL;
-					break;
-				case "fromDomain":
-					$email_headers	= "From: $senderName <"		. $this->getValue('domainAddress')	.">".PHP_EOL;
-					$email_headers .= "Reply-To: $senderName <"	. $this->senderEmail				.">".PHP_EOL;
-					break;		
-				default: // fromUser
-					$email_headers	= "From: $senderName <"		. $this->senderEmail				.">".PHP_EOL;
-			}
+
+				 IF ($SentReceipt) {
+					switch ($sendFrom)
+						{
+						case "fromTo":
+							$email_headers	= "From: $subject <"		. $this->getValue('email')			.">".PHP_EOL;
+							$email_headers .= "Reply-To: $subject <"	. $this->getValue('email')			.">".PHP_EOL;
+							break;
+						case "fromDomain":
+							$email_headers	= "From: $subject <"		. $this->getValue('domainAddress')	.">".PHP_EOL;
+							$email_headers .= "Reply-To: $subject <"	. $this->getValue('email')			.">".PHP_EOL;
+							break;		
+						default: // fromUser
+							$email_headers	= "From: $subject <"		. $this->getValue('email')			.">".PHP_EOL;
+						}
+				}
+				ELSE {
+					switch ($sendFrom)
+						{
+						case "fromTo":
+							$email_headers	= "From: $senderName <"		. $this->getValue('email')			.">".PHP_EOL;
+							$email_headers .= "Reply-To: $senderName <"	. $this->senderEmail				.">".PHP_EOL;
+							break;
+						case "fromDomain":
+							$email_headers	= "From: $senderName <"		. $this->getValue('domainAddress')	.">".PHP_EOL;
+							$email_headers .= "Reply-To: $senderName <"	. $this->senderEmail				.">".PHP_EOL;
+							break;		
+						default: // fromUser
+							$email_headers	= "From: $senderName <"		. $this->senderEmail				.">".PHP_EOL;					
+					}
+				}
 
 		$email_headers .= 'MIME-Version: 1.0' ."\r\n";
 
@@ -449,8 +480,21 @@ class pluginBookingFormV3 extends Plugin {
 		$email_headers .= 'Content-transfer-encoding: 8bit' ."\r\n";
 		$email_headers .= 'Date: ' .date("D, j M Y G:i:s O")."\r\n"; // Sat, 7 Jun 2001 12:35:58 -0700
 
-		// send email via sendmail
-		$success = mail($this->getValue('email'), $this->getSubject(), $this->getEmailText(), $email_headers);            
+		// send email via sendmail => mail(to,subject,message,headers,parameters);
+		IF ($SentReceipt) {
+			$success = mail($senderName."<". $this->senderEmail.">", 						// Sent receipt back to user
+							$this->getSubject().' ('.$this->eventName.')', 													// Same Subject
+							$L->get('booking-confirmation').PHP_EOL.PHP_EOL.$this->getEmailText(),	// Same message with prefix, thanks you for booking
+							$email_headers															// Same From: ReplyTo
+							);
+		}
+		else {
+			$success = mail($this->getValue('email'), 
+							$this->getSubject().' ('.$this->eventName.')', 
+							$this->getEmailText(), 
+							$email_headers
+							);
+		}
 
 		if(!$success){
 
