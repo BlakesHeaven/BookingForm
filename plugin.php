@@ -14,7 +14,7 @@ class pluginBookingForm extends Plugin {
   private $eventName = ''; 
   private $senderName = '';
   private $senderEmail = '';
-  //private $message = '';
+  private $validateEmail = '';
   private $senderPhone = '';
   private $numberOfTickets = 0; 
   private $paymantConfirmed = 'No';
@@ -312,9 +312,9 @@ class pluginBookingForm extends Plugin {
     if(isset($_POST['senderEmail'])) {
       $this->senderEmail =  trim(preg_replace("/[^0-9a-zA-ZäöüÄÖÜÈèÉéÂâáÁàÀíÍìÌâÂ@ \-\+\_\.]/", " ", $_POST['senderEmail']));
     }
-    // if(isset($_POST['message'])){
-      // $this->message = trim(strip_tags($_POST['message']));
-    // }
+    if(isset($_POST['validateEmail'])){
+      $this->validateEmail = trim(strip_tags($_POST['validateEmail']));
+    }
     if(isset($_POST['senderPhone'])){
       $this->senderPhone = trim(strip_tags($_POST['senderPhone']));
 	}
@@ -346,8 +346,8 @@ class pluginBookingForm extends Plugin {
 		$error = $L->get('please-enter-your-name').'<br>';                            
     elseif(trim($this->senderEmail)==='')
 		$error = $L->get('please-enter-a-valid-email-address').'<br>';
-    // elseif(trim($this->message)==='')
-      // $error = $L->get('please-enter-the-content-of-your-message');
+    elseif(trim($this->validateEmail)<>trim($this->senderEmail) )
+      $error = $L->get('email-entered-not-same');
     elseif(trim($this->senderPhone)==='')
 		$error = $L->get('please-enter-phone-number').'<br>';
     elseif(trim($this->numberOfTickets) < 1)
@@ -382,30 +382,32 @@ class pluginBookingForm extends Plugin {
 		$emailText  = '<b>'.$L->get('booking-event')	.': </b>'.$this->eventName			.'<br>';
 		$emailText .= '<b>'.$L->get('booking-name')		.': </b>'.$this->senderName			.'<br>';
 		$emailText .= '<b>'.$L->get('booking-email')	.': </b>'.$this->senderEmail		.'<br>';
+		$emailText .= '<b>'.$L->get('booking-chk-email').': </b>'.$this->validateEmail		.'<br>';			
 		$emailText .= '<b>'.$L->get('booking-phone')	.': </b>'.$this->senderPhone		.'<br>';
 		$emailText .= '<b>'.$L->get('booking-tickets')	.': </b>'.$this->numberOfTickets	.'<br>';
 		$emailText .= '<b>'.$L->get('booking-pickup')	.': </b>'.$this->pickupPoint    	.'<br>';
 		$emailText .= '<b>'.$L->get('booking-payment')	.': </b>'.$this->paymantConfirmed	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-others')	.': </b>'.nl2br($this->otherPartyNames)	.'<br>';
-		$emailText .= '<b>'.$L->get('booking-sit-near')	.': </b>'.nl2br($this->sittingNear ).'<br>';
+		$emailText .= '<b>'.$L->get('booking-others')	.': </b>'.$this->otherPartyNames	.'<br>';
+		$emailText .= '<b>'.$L->get('booking-sit-near')	.': </b>'.$this->sittingNear		.'<br>';
 		$emailText .= '<b>'.$L->get('booking-needs')	.': </b>'.nl2br($this->specialNeeds).'<br>';
-//		$emailText .= '<b>'.$L->get('Your Message')		.': </b>'.nl2br($this->message)	.'<br>';	  
+  
       if($this->getValue('gdpr-checkbox')){
         $emailText .= sanitize::htmlDecode($this->getValue('gdpr-checkbox-text')).'<br>';
       }
     } 
 	else {
-		$emailText  = $L->get('booking-event')				.': '.$this->eventName			."\r\n\r";
-		$emailText .= $L->get('booking-name')				.': '.$this->senderName			."\r\n\r";
-		$emailText .= $L->get('booking-email')				.': '.$this->senderEmail		."\r\n\r";
-		$emailText .= $L->get('booking-phone')				.': '.$this->senderPhone		."\r\n\r";
-		$emailText .= $L->get('booking-tickets')			.': '.$this->numberOfTickets	."\r\n\r";
-		$emailText .= $L->get('booking-pickup')				.': '.$this->pickupPoint		."\r\n\r";
-		$emailText .= $L->get('booking-payment')			.': '.$this->paymantConfirmed	."\r\n\r";
-		$emailText .= $L->get('booking-others')				.': '.$this->otherPartyNames	."\r\n\r";
-		$emailText .= $L->get('booking-sit-near')			.': '.$this->sittingNear		."\r\n\r";
-		$emailText .= $L->get('booking-needs')				.': '.$this->specialNeeds		."\r\n\r";
-//		$emailText .= $L->get('Your Message')				.': '."\r\n".$this->message		."\r\n\r";
+		$emailText  = $L->get('booking-event')			.': '.$this->eventName			."\r\n\r";
+		$emailText .= $L->get('booking-name')			.': '.$this->senderName			."\r\n\r";
+		$emailText .= $L->get('booking-email')			.': '.$this->senderEmail		."\r\n\r";
+		$emailText .= $L->get('booking-chk-email')		.': '.$this->validateEmail		."\r\n\r";		
+		$emailText .= $L->get('booking-phone')			.': '.$this->senderPhone		."\r\n\r";
+		$emailText .= $L->get('booking-tickets')		.': '.$this->numberOfTickets	."\r\n\r";
+		$emailText .= $L->get('booking-pickup')			.': '.$this->pickupPoint		."\r\n\r";
+		$emailText .= $L->get('booking-payment')		.': '.$this->paymantConfirmed	."\r\n\r";
+		$emailText .= $L->get('booking-others')			.': '.$this->otherPartyNames	."\r\n\r";
+		$emailText .= $L->get('booking-sit-near')		.': '.$this->sittingNear		."\r\n\r";
+		$emailText .= $L->get('booking-needs')			.': '.$this->specialNeeds		."\r\n\r";
+
 		if($this->getValue('gdpr-checkbox')){
 		$emailText .= strip_tags(sanitize::htmlDecode($this->getValue('gdpr-checkbox-text')))."\r\n\r";
 		}
@@ -482,8 +484,8 @@ class pluginBookingForm extends Plugin {
 
 		// send email via sendmail => mail(to,subject,message,headers,parameters);
 		IF ($SentReceipt) {
-			$success = mail($senderName."<". $this->senderEmail.">", 						// Sent receipt back to user
-							$this->getSubject().' ('.$this->eventName.')', 													// Same Subject
+			$success = mail($senderName."<". $this->senderEmail.">", 								// Sent receipt back to user
+							$this->getSubject().' ('.$this->eventName.')', 							// Same Subject
 							$L->get('booking-confirmation').PHP_EOL.PHP_EOL.$this->getEmailText(),	// Same message with prefix, thanks you for booking
 							$email_headers															// Same From: ReplyTo
 							);
@@ -578,7 +580,7 @@ class pluginBookingForm extends Plugin {
 	$this->eventName		= '';  
     $this->senderName		= '';
     $this->senderEmail		= '';
-    //$this->message		= '';
+    $this->validateEmail	= '';
     $this->senderPhone		= '';
 	$this->numberOfTickets	= 0;
 	$this->pickupPoint		= '';

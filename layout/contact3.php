@@ -3,12 +3,56 @@
  *  Contact layout
  *
  *  @package Bludit
- *  @subpackage Contact
- *  @author Frédéric K
- *	@author novafacile OÜ.
+ *  @subpackage Booking Form
+ *	@author David Blake
  *  @info: Duplicate this layout in your themes/YOUR_THEME/php/ 
  *	for a custom template.
  */	
+ 
+	$currentDate	= strtotime("now");
+	$event1OpenDate	= strtotime("2019-08-07");	$event1CloseDate	= strtotime("2019-08-22");
+	$event2OpenDate	= strtotime("2019-08-14");	$event2CloseDate	= strtotime("2019-08-29");
+	$event3OpenDate	= strtotime("2019-09-04");	$event3CloseDate	= strtotime("2019-09-17");
+	$event4OpenDate	= strtotime("2019-09-11");	$event4CloseDate	= strtotime("2019-09-26");
+	$event5OpenDate	= strtotime("2019-10-23");	$event5CloseDate	= strtotime("2019-11-07");
+	$event6Opendate	= strtotime("2019-09-18");	$event6Closedate	= strtotime("2019-10-03");
+
+	$numberOfEvents = 0;
+	$eventNameOptions = '';
+
+	IF ($currentDate > $event1OpenDate and $currentDate < $event1CloseDate) {
+		$eventNameOptions .= '<option value="Penzance Pirates"	'.($this->eventName ==='Penzance Pirates'?'selected':'').	'>Pirates of Penzance ~ 28th Sep 2019 ~ £22pp			</option>'.PHP_EOL;
+		$numberOfEvents++; // add 1 to number of events
+	}
+	IF ($currentDate > $event2OpenDate and $currentDate < $event2CloseDate) {
+		$eventNameOptions .= '<option value="Ripon Festival" 	'.($this->eventName ==='Ripon Festival'?'selected':'').		'>Ripon Festival ~ 6th Oct 2019 ~ £36pp					</option>'.PHP_EOL;
+		$numberOfEvents++;	
+	}
+	IF ($currentDate > $event3OpenDate and $currentDate < $event3CloseDate) {
+		$eventNameOptions .= '<option value="Jane Eyre" 		'.($this->eventName ==='Jane Eyre'?'selected':'').			'>Jane Eyre ~ 25th Oct 2019 ~ £24pp						</option>'.PHP_EOL;
+		$numberOfEvents++;
+	}
+	IF ($currentDate > $event4OpenDate and $currentDate < $event4CloseDate) {
+		$eventNameOptions .= '<option value="Harrogate Symphony"'.($this->eventName ==='Harrogate Symphony'?'selected':'').	'>Harrogate Symphony Orchestra ~ 16th Nov 2019 ~ £23pp	</option>'.PHP_EOL;
+		$numberOfEvents++;
+	}
+	IF ($currentDate > $event5OpenDate and $currentDate < $event4CloseDate) {
+		$eventNameOptions .= '<option value="Absurd Person" 	'.($this->eventName ==='Absurd Person'?'selected':'').		'>Absurd Person Singular ~ 9th Dec 2019 ~ £17pp			</option>'.PHP_EOL;
+		$numberOfEvents++;
+	}
+	IF ($currentDate > $event6Opendate and $currentDate < $event6CloseDate) {
+		$eventNameOptions .= '<option value="Cinderella" 		'.($this->eventName ==='Cinderella'?'selected':'').			'>Cinderella ~ Date: 17th Dec 2019 ~ £56pp				</option>'.PHP_EOL;
+		$numberOfEvents++;
+	}
+	// Add the "Please select from list" option if more than one event available
+	IF ($numberOfEvents > 1) {
+		$eventNameOptions = '<option value="" '.($this->eventName ===''?'selected':'').'>Please select from list</option>'.$eventNameOptions.PHP_EOL;	
+	}
+	ELSEIF ($numberOfEvents == 0) {
+		$eventNameOptions = '<option value="" '.($this->eventName ===''?'selected':'').'>No events are available for booking. Please refer to event send-out dates.</option>'.PHP_EOL;
+	}
+	// If there is only one event available, just show that.
+ 
 ?>
 <form method="post" action="<?php echo '.' . DS . $page->slug(); ?>" class="contact3">
 	<?php echo $this->frontendMessage(); ?>
@@ -17,14 +61,8 @@
     <div class="form-group" >
 		<label><?php echo $L->get('event-name-label');?></label>
 		<select name="eventName" class="form-control" required >
-			<?php echo
-				 '<option value=""	 				'.($this->eventName ===''?'selected':'').					'>Please select from list								</option>'.PHP_EOL
-				.'<option value="Penzance Pirates"	'.($this->eventName ==='Penzance Pirates'?'selected':'').	'>Pirates of Penzance ~ 28th Sep 2019 ~ £22pp			</option>'.PHP_EOL
-				.'<option value="Ripon Festival" 	'.($this->eventName ==='Ripon Festival'?'selected':'').		'>Ripon Festival ~ 6th Oct 2019 ~ £36pp					</option>'.PHP_EOL
-				.'<option value="Jane Eyre" 		'.($this->eventName ==='Jane Eyre'?'selected':'').			'>Jane Eyre ~ 25th Oct 2019 ~ £24pp						</option>'.PHP_EOL
-				.'<option value="Harrogate Symphony"'.($this->eventName ==='Harrogate Symphony'?'selected':'').	'>Harrogate Symphony Orchestra ~ 16th Nov 2019 ~ £23pp	</option>'.PHP_EOL
-				.'<option value="Absurd Person" 	'.($this->eventName ==='Absurd Person'?'selected':'').		'>Absurd Person Singular ~ 9th Dec 2019 ~ £17pp			</option>'.PHP_EOL
-				.'<option value="Cinderella" 		'.($this->eventName ==='Cinderella'?'selected':'').			'>Cinderella ~ Date: 17th Dec 2019 ~ £56pp				</option>'.PHP_EOL;
+			<?php
+				echo $eventNameOptions;
 			?>
 		</select>
     </div>
@@ -37,6 +75,11 @@
 	<div class="form-group">
 		<label><?php echo $L->get('your-email-label'); ?></label>
 		<input id="senderEmail" type="email" name="senderEmail" value="<?php echo sanitize::email($this->senderEmail); ?>" placeholder="<?php echo $L->get('your-email-placeholder'); ?>" class="form-control" required >
+	</div>
+	<!-- senderEmail -->
+	<div class="form-group">
+		<label><?php echo $L->get('validate-email-label'); ?></label>
+		<input id="validateEmail" type="email" name="validateEmail" value="<?php echo sanitize::email($this->validateEmail); ?>" placeholder="<?php echo $L->get('validate-email-placeholder'); ?>" class="form-control" required >
 	</div>
 	<!-- senderPhone -->
 	<div class="form-group">
