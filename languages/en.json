@@ -8,8 +8,8 @@
 	"contact":						"Contact",
 	"select-content-label":			"Select a static page for the booking form",
 	"select-content-tip":			"The list is based only on published content. The contact form will be positioned below it.",   
-	"results-file-label":			"Select a static page for the results", 
-	"results-file-tip":				"The list is based only on published content. Recommend hiding page from users.", 
+	"results-file-label":			"Booking Logs", 
+	"results-file-tip":				"The following data is stored in txt files on the web server, and are displayed in file date decending order.", 
 	"content-type":					"Content type",
 	"html":							"HTML format",
 	"text":							"TEXT format",
@@ -83,6 +83,15 @@
 	"activate-google-recaptcha-v2":	"Google reCAPTCHA v2",
 	"recaptcha-website-key":		"reCAPTCHA: Site Key",
 	"recaptcha-secret-key":			"reCAPTCHA: Secret Key",
+
+	"display-booking-logs-title":	"Booking Logs and Display Options",
+	"display-booking-logs-desc":	"The booking details are stored in logs and displayed for administrators to check.",
+	"number-of-booking-logs-to-display-label": "Number of log files to display:",
+	"number-of-booking-logs-to-display-tip": "Display only the most recently modified log files.",
+	
+	"booking-form-config-title":	"Booking Form Configuration",
+	"booking-form-config-desc":		"Use the following fields to configure how emails are sent.",	
+	
 	"send-from-which-address":		"Email sender address",
 	"send-from-which-address-tip":	"If possible, use the email address of the visitor. However, some hosts require an email address known on the server. In this case, you can choose between the recipients address (above) or a special sender email address (below) as the sender.",
 	"send-from-user":				"Email address from visitor",

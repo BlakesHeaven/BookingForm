@@ -4,10 +4,10 @@
  *
  *  @package Bludit
  *  @subpackage Plugins
- *  @author novafacile OÜ
+ *  @author David Blake
  *  @version 1.0.1
- *  @release 2018-11-25
- *  @info plugin based on contact plugin by Frédéric K (http://flatboard.free.fr)
+ *  @release 2020-01-20
+ *  @info plugin based on Contact3 plugin by novafacile OÜ
  *
  */
 class pluginBookingForm extends Plugin {
@@ -26,25 +26,26 @@ class pluginBookingForm extends Plugin {
 	private $error = false;
 	private $reCaptchaResult = false;
 	private $loadOnController = array('BookingForm');
-  // install plugin
+
 
   public function init() {
     $this->dbFields = array(
-      'email' => '',    // <= Your contact email
-      'page'  => '',    // <= Slug url of contact page
-      'type'  => 'text',  // <= True = HTML or False for text mail format
-      'subject' => '', // subject for email (optional)
-      'smtphost' => '',
-      'smtpport' => '',
-      'username' => '',
-      'password' => '',
-      'google-recaptcha' => '',
-      'recaptcha-site-key' => '',
-      'recaptcha-secret-key' => '',
-      'sendEmailFrom' => 'fromUser',
-      'domainAddress' => '',
-      'gdpr-checkbox' => '',
-      'gdpr-checkbox-text' => ''
+		'email' 	=> '',
+		'page'  	=> '',
+		'type'  	=> 'text',
+		'subject'	=> '',
+		'smtphost'	=> '',
+		'smtpport'	=> '',
+		'username'	=> '',
+		'password'	=> '',
+		'google-recaptcha'		=> '',
+		'recaptcha-site-key'	=> '',
+		'recaptcha-secret-key	'=> '',
+		'sendEmailFrom'			=> 'fromUser',
+		'domainAddress'			=> '',
+		'gdpr-checkbox'			=> '',
+		'gdpr-checkbox-text'	=> '',
+		'numberOfBookingLogsToDisplay' => 6
     );
   }
 
@@ -53,9 +54,9 @@ class pluginBookingForm extends Plugin {
 
     global $site, $L, $staticPages;
 
-	//echo $this->workspace().'<br>';
-
 	$fileUrl = $site->url();
+	$numberOfBookingLogsToDisplay = $this->getValue('numberOfBookingLogsToDisplay');
+	$count = 1;
 
     $html  = '';
 	$html .= '<div class="alert alert-primary" role="alert">';
@@ -74,15 +75,75 @@ class pluginBookingForm extends Plugin {
 
     // TO: email address
 	$directory = $this->workspace();
-	$csvFilesArray = glob($directory . "*.csv");
+	
+	array_multisort(array_map('filemtime', (
+		$csvFilesArray = glob($directory . "*.csv")
+			)), SORT_DESC, $csvFilesArray);
+
+    $html .= '<h4>'.$L->get('display-booking-logs-title').'</h4>';
+    $html .= $L->get('display-booking-logs-desc');
+
+	$html .= '<div>';
+	$html .= '<label>'.$L->get('number-of-booking-logs-to-display-label').'</label>';
+	$html .= '<input id="jsnumberOfBookingLogsToDisplay" name="numberOfBookingLogsToDisplay" type="number" value="'.$this->getValue('numberOfBookingLogsToDisplay').'">';
+	$html .= '<span class="tip">'.$L->get('number-of-booking-logs-to-display-tip').'</span>';
+	$html .= '</div>';
 
     $html .= '<div>';
     $html .= '<label>'.$L->get('results-file-label').'</label>';
 	$html .= '<span class="tip">'.$L->get('results-file-tip').'</span>';
+
+	// Display booking log entries in Plugin Settings page
 	foreach($csvFilesArray as $csvFile) {
-		$html .= "<a href=".$fileUrl."bl-content/workspaces/BookingForm/".str_replace(' ','%20',basename($csvFile)).">".basename($csvFile)."</a><br>";
+
+		if ($count++ > $numberOfBookingLogsToDisplay ) break;
+		clearstatcache(true);		
+		$html .= "<hr><label><b>".basename($csvFile)." | Last changed: ".date("d F Y H:i", filemtime("$csvFile"))."</b></label>";
+		
+		$row = 1;
+		if (($handle = fopen("$csvFile", "r")) !== FALSE) {		
+
+			$html .= '<table border="1"  width="100%">';
+		   
+			while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+				$num = count($data);
+				if ($row == 1) {
+					$html .= '<thead><tr>';
+				}else{
+					$html .= '<tr>';
+				}
+			   
+				for ($column=1; $column < $num; $column++) { // $column=0 would be the first column, it is skipped here.
+
+					if(empty($data[$column])) {
+					   $value = "&nbsp;";
+					}else{
+					   $value = $data[$column];
+					}
+					if ($row == 1) {
+						$html .= '<th>'.$value.'</th>';
+					}else{
+						$html .= '<td>'.$value.'</td>';
+					}
+				}
+			   
+				if ($row == 1) {
+					$html .= '</tr></thead><tbody>';
+				}else{
+					$html .= '</tr>';
+				}
+				$row++;
+			}
+		   
+			$html .= '</tbody></table>';
+			fclose($handle);
+		}
 	}
+
     $html .= '</div>'.PHP_EOL;
+
+    $html .= '<hr><h4>'.$L->get('booking-form-config-title').'</h4>';
+    $html .= $L->get('booking-form-config-desc');
 	
     // TO: email address
     $html .= '<div>';
@@ -136,14 +197,14 @@ class pluginBookingForm extends Plugin {
     $html .= '<input name="subject" type="text" class="form-control" value="'.$this->getValue('subject').'">';
     $html .= '</div>'.PHP_EOL;
 
-    $html .= '<br><br>';
+    $html .= '<br>';
 
     /**
      * SMTP Settings
      * Contribution by Dominik Sust
      * Git: https://github.com/HarleyDavidson86/bludit-plugins/commit/eb395c73ea4800a00f4ec5e9c9baabc5b9db19e8 
     **/
-    $html .= '<h4>SMTP</h4>';
+    $html .= '<hr><h4>SMTP</h4>';
     $html .= $L->get('smtp-options');
 
     // SMTP Host
@@ -170,10 +231,10 @@ class pluginBookingForm extends Plugin {
     $html .= '<input name="password" type="password" class="form-control" value="'.$this->getValue('password').'">';
     $html .= '</div>'.PHP_EOL;
     
-    $html .= '<br><br>';
+    $html .= '<br>';
 
     // GDPR
-    $html .= '<h4>'.$L->get('gdpr-header').'</h4>';
+    $html .= '<hr><h4>'.$L->get('gdpr-header').'</h4>';
     $html .= $L->get('gdpr-header-tip');
 
     // Activate GDPR Checkbox
@@ -192,10 +253,10 @@ class pluginBookingForm extends Plugin {
     $html .= '<span class="tip">'.$L->get('gdpr-checkbox-text-tip').'</span>';
     $html .= '</div>'.PHP_EOL;
 
-    $html .= '<br><br>';
+    $html .= '<br>';
 
     // Google reCaptcha v2
-    $html .= '<h4>Spam Protection</h4>';
+    $html .= '<hr><h4>Spam Protection</h4>';
     $html .= $L->get('anti-spam-info');
 
     // activate reCaptcha
@@ -219,7 +280,7 @@ class pluginBookingForm extends Plugin {
     $html .= '<input name="recaptcha-secret-key" type="text" class="form-control" value="'.$this->getValue('recaptcha-secret-key').'" autocomplete="off">';
     $html .= '</div>'.PHP_EOL;
 
-    $html .= '<br><br>';
+    $html .= '<br>';
 
     // output
     $html .= '<br><br>';
@@ -296,11 +357,8 @@ class pluginBookingForm extends Plugin {
             $this->clearForm();
           }
         }
-        // show frontend message
-        //echo $this->frontendMessage(); 
       }
 
-      // include contact form
       $this->includeContactForm();
     }
   }
@@ -418,7 +476,7 @@ class pluginBookingForm extends Plugin {
 			$emailText  = '<b>'.$L->get('booking-event')	.': </b>'.$this->eventName			.'<br>';
 			$emailText .= '<b>'.$L->get('booking-name')		.': </b>'.$this->senderName			.'<br>';
 			$emailText .= '<b>'.$L->get('booking-email')	.': </b>'.$this->senderEmail		.'<br>';
-	//		$emailText .= '<b>'.$L->get('booking-chk-email').': </b>'.$this->validateEmail		.'<br>';// Not needed unless you want it in the emails		
+		//	$emailText .= '<b>'.$L->get('booking-chk-email').': </b>'.$this->validateEmail		.'<br>';// Not needed unless you want it in the emails		
 			$emailText .= '<b>'.$L->get('booking-phone')	.': </b>'.$this->senderPhone		.'<br>';
 			$emailText .= '<b>'.$L->get('booking-tickets')	.': </b>'.$this->numberOfTickets	.'<br>';
 			$emailText .= '<b>'.$L->get('booking-pickup')	.': </b>'.$this->pickupPoint    	.'<br>';
@@ -435,7 +493,7 @@ class pluginBookingForm extends Plugin {
 			$emailText  = $L->get('booking-event')			.': '.$this->eventName			."\r\n\r";
 			$emailText .= $L->get('booking-name')			.': '.$this->senderName			."\r\n\r";
 			$emailText .= $L->get('booking-email')			.': '.$this->senderEmail		."\r\n\r";
-	//		$emailText .= $L->get('booking-chk-email')		.': '.$this->validateEmail		."\r\n\r";	// Not needed unless you want it in the emails
+		//	$emailText .= $L->get('booking-chk-email')		.': '.$this->validateEmail		."\r\n\r";	// Not needed unless you want it in the emails
 			$emailText .= $L->get('booking-phone')			.': '.$this->senderPhone		."\r\n\r";
 			$emailText .= $L->get('booking-tickets')		.': '.$this->numberOfTickets	."\r\n\r";
 			$emailText .= $L->get('booking-pickup')			.': '.$this->pickupPoint		."\r\n\r";
@@ -523,8 +581,8 @@ class pluginBookingForm extends Plugin {
 
 		// send email via sendmail => mail(to,subject,message,headers,parameters);
 		IF ($SentReceipt) {
-			$success = mail($senderName	."<". $senderEmail.">", 									// To:		Sent receipt back to user
-							$subject	.' ('.$this->eventName.')', 								// Subject:	Same Subject
+			$success = mail($senderName	."<". $senderEmail.">", 								// To:		Sent receipt back to user
+							$subject	.' ('.$this->eventName.')', 							// Subject:	Same Subject
 							$L->get('booking-confirmation')."\r\n\r\n".$this->getEmailText(),	// Same message with prefix, eg "thank you for booking"
 							$email_headers														// Same From: ReplyTo
 							);
@@ -561,7 +619,7 @@ class pluginBookingForm extends Plugin {
 		$senderEmail	= $this->senderEmail;
 		$domainEmail	= $this->getValue('domainAddress');
 		$subject		= $this->getSubject();
-// here
+
 		// load PHPMailer
 		require __DIR__ . DS . 'phpmailer' . DS . 'PHPMailerAutoload.php';
 
@@ -690,7 +748,5 @@ class pluginBookingForm extends Plugin {
 		fputcsv($handle, $booking );
 		fclose($handle);
 
-		// Alternative way of writing to file
-		//return file_put_contents($logEventFile, $booking, FILE_APPEND | LOCK_EX)!==false;
 	}
 }
