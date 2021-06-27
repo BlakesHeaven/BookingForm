@@ -31,7 +31,7 @@
 	"your-phone-placeholder":		"eg H:xxxxx xxxxx &/or M:yyyyy yyyyyy", 
 	"number-of-tickets-label":		"How many tickets do you need?",
 	"pickup-point-label":			"Pickup point:",  
-	"paymant-confirmed-label":		"Confirm full payment by bank transfer:",
+	"payment-option-label":			"Select how you wish to pay:",
 	"other-party-names-label":		"Name(s) of other members of your party?",
 	"other-party-names-placeholder":"Enter a comma separated list of all other people you are getting tickets for.",
 	
@@ -47,7 +47,7 @@
 	"booking-phone":				"Contact Phone",
 	"booking-tickets":				"Tickets Needed",
 	"booking-pickup":				"Pickup Point",
-	"booking-payment":				"Payment Confirmed",
+	"booking-payment":				"Payment Option",
 	"booking-others":				"Others in Party",
 	"booking-sit-near":				"Sit-near Request",
 	"booking-needs":				"Special Needs",
@@ -66,10 +66,12 @@
 	"ticket-count-zero-warning":	"Number of tickets must be greater than zero.",
 	"confirm-payment":				"Please confirm you have paid.",
 	"other-party-names-needed":		"With more than 1 ticket, please include all other party names.",
+	"tickets-not-equal-to-people":	"The number of tickets do not equal the total number in your party.<br>Please check you guest name list and that it is comma seperated.",
 	"accept-privacy-policy":		"Please accept the privacy policy.",
 	"robot-check-warning":			"Please activate the checkbox, &quot;I'm not a robot&quot;.",
 	
-	"booking-confirmation":			"Thank you for your booking. You will be contacted as soon as possible.",
+	"booking-confirmation-email":	"Thank you for your booking.<br>You will be contacted as soon as possible.",
+	"booking-confirmation-screen":	"Thank you for your booking.<br>Please check your email inbox for your confirmation email.<br>You will be contacted as soon as possible.",
 	"sending-email-error":			"Sorry, for some reason the mail server did not accept the mail for sending. Please try again later.",
 	"last-error":					"The last Error was",
 	
@@ -79,6 +81,16 @@
 	"smtp-port":					"SMTP Port",
 	"smtp-username":				"SMTP Username",
 	"smtp-password":				"SMTP Password",
+
+	"payment-detail-header":		"Payment Detail",
+	"payment-detail-header-tip":	"Enter below the address for cheques and bank to bank transfer detail for online payments",
+	"bank-details":					"Bank Details",
+	"bank-details-tip":				"The account and sort number, which are displayed to the user when they select payment method and are included in their email booking.",
+	"treasurer-address":			"Treasurer Address",
+	"treasurer-address-tip":		"The address where cheques are to be sent. Displayed to the user when they select payment method and is included in their email booking.",
+	"bank-detail-pre-text":			"Bank to bank transfer: Pay into ",
+	"treasurer-address-pre-text":	"Cheque: Sent to ",
+	
 	"anti-spam-info":				"Enables Google reCAPTCHA v2 in contact form.<br>Before activation, you need to register your website at <a href='https://www.google.com/recaptcha' target='_blank'>Google reCaptcha</a>.<br>Choose Version 2. Both the <i>Site Key</i> and <i>Secret Key</i> are required.",
 	"activate-google-recaptcha-v2":	"Google reCAPTCHA v2",
 	"recaptcha-website-key":		"reCAPTCHA: Site Key",

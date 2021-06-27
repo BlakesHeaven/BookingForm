@@ -16,12 +16,15 @@
 	global $content;
  	$formatter = new NumberFormatter(@$locale,  NumberFormatter::CURRENCY);		// Presets the formatting of the currency to the globally configured location.
  
-	$currentDateTime	= strtotime("now");										// The DateTime now, stored as a number for comparisons later.
-	$numberOfEventOptions = 0;
-	$eventNameOptions = '';
-	$numberOfEventDisplay = 0;
-	$eventNameDisplay = '';
- 
+	$currentDateTime		= strtotime("now");									// The DateTime now, stored as a number for comparisons later.
+	$numberOfEventOptions	= 0;
+	$eventNameOptions		= '';
+	$numberOfEventDisplay	= 0;
+	$eventNameDisplay		= '';
+	$bankDetailsText		= $L->get('bank-detail-pre-text').$this->getValue('bankDetails');
+	$treasurerAddressText	= $L->get('treasurer-address-pre-text').$this->getValue('treasurerAddress');
+
+			
  // Build Bookable Events List
     $pageNumber = 1;															// Page number of the paginator, the first page is 1
     $numberOfItems = -1;														// The value -1 tell to Bludit to returns all the pages on the system
@@ -132,7 +135,7 @@
 	<!-- This title might be needed if the chosen page Title is not someting like "Booking Form"-->
 	<!--label><?php echo $L->get('booking-form-label');?></label-->
 
-	<form method="post" action="<?php echo '.' . DS . $page->slug(); ?>" class="contact3">
+	<form id="TopOfForm" method="post" action="<?php echo '.' . DS . $page->slug(); ?>#TopOfForm" class="contact3">
 		<?php echo $this->frontendMessage(); ?>
 		<input type="hidden" name="tokenCSRF" value="<?php echo $security->getTokenCSRF(); ?>">
 
@@ -174,13 +177,14 @@
 			?>
 		</div>	
 
-		<!-- paymantConfirmed -->
+		<!-- paymentOption -->
 		<div class="form-group">
-			<label><?php echo $L->get('paymant-confirmed-label'); ?></label>
-			<select name="paymantConfirmed" class="form-control" required>
+			<label><?php echo $L->get('payment-option-label'); ?></label>
+			<select name="paymentOption" class="form-control" required>
 				<?php echo
-					 '<option value="No"	'.($this->paymantConfirmed ==='No'?'selected':'')	.'>No	</option>'
-					.'<option value="Yes"	'.($this->paymantConfirmed ==='Yes'?'selected':'')	.'>Yes	</option>'
+					 '<option value=""	 			'.($this->paymentOption ===''?'selected':'')			.'>Please select from list	  </option>'.PHP_EOL
+					.'<option value="B2Btransfer"	'.($this->paymentOption ==='B2Btransfer'?'selected':'')	.'>'.$bankDetailsText		.'</option>'.PHP_EOL
+					.'<option value="Cheque" 		'.($this->paymentOption ==='Cheque'?'selected':'')		.'>'.$treasurerAddressText	.'</option>'.PHP_EOL
 				?>
 			</select>
 		</div>

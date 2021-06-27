@@ -11,41 +11,43 @@
  *
  */
 class pluginBookingForm extends Plugin {
-	private $eventName = ''; 
-	private $senderName = '';
-	private $senderEmail = '';
-	private $validateEmail = '';
-	private $senderPhone = '';
-	private $numberOfTickets = 0; 
-	private $paymantConfirmed = 'No';
-	private $otherPartyNames = '';
-	private $pickupPoint = '';  
-	private $sittingNear = '';
-	private $specialNeeds = '';
-	private $success = false;
-	private $error = false;
-	private $reCaptchaResult = false;
-	private $loadOnController = array('BookingForm');
+	private $eventName			= ''; 
+	private $senderName			= '';
+	private $senderEmail		= '';
+	private $validateEmail		= '';
+	private $senderPhone		= '';
+	private $numberOfTickets	= 0; 
+	private $paymentOption		= '';
+	private $otherPartyNames	= '';
+	private $pickupPoint		= '';  
+	private $sittingNear		= '';
+	private $specialNeeds		= '';
+	private $success			= false;
+	private $error				= false;
+	private $reCaptchaResult	= false;
+	private $loadOnController	= array('BookingForm');
 
 
   public function init() {
     $this->dbFields = array(
-		'email' 	=> '',
-		'page'  	=> '',
-		'type'  	=> 'text',
-		'subject'	=> '',
-		'smtphost'	=> '',
-		'smtpport'	=> '',
-		'username'	=> '',
-		'password'	=> '',
-		'google-recaptcha'		=> '',
-		'recaptcha-site-key'	=> '',
-		'recaptcha-secret-key	'=> '',
-		'sendEmailFrom'			=> 'fromUser',
-		'domainAddress'			=> '',
-		'gdpr-checkbox'			=> '',
-		'gdpr-checkbox-text'	=> '',
-		'numberOfBookingLogsToDisplay' => 6
+		'email' 						=> '',
+		'page'  						=> '',
+		'type'  						=> 'text',
+		'subject'						=> '',
+		'smtphost'						=> '',
+		'smtpport'						=> '',
+		'username'						=> '',
+		'password'						=> '',
+		'bankDetails'					=> '',
+		'treasurerAddress'				=> '',
+		'google-recaptcha'				=> '',
+		'recaptcha-site-key'			=> '',
+		'recaptcha-secret-key'			=> '',
+		'sendEmailFrom'					=> 'fromUser',
+		'domainAddress'					=> '',
+		'gdpr-checkbox'					=> '',
+		'gdpr-checkbox-text'			=> '',
+		'numberOfBookingLogsToDisplay'	=> 6
     );
   }
 
@@ -233,6 +235,26 @@ class pluginBookingForm extends Plugin {
     
     $html .= '<br>';
 
+    // Payment Options
+    $html .= '<hr><h4>'.$L->get('payment-detail-header').'</h4>';
+    $html .= $L->get('payment-detail-header-tip');
+
+    // BankDetails
+    $html .= '<div>';
+    $html .= '<label>'.$L->get('bank-details').'</label>';
+    $html .= '<input name="bankDetails" type="text" class="form-control" value="'.$this->getValue('bankDetails').'">';
+    $html .= '<span class="tip">'.$L->get('bank-details-tip').'</span>';
+	$html .= '</div>'.PHP_EOL;
+
+    // Treasurer Address
+    $html .= '<div>';
+    $html .= '<label>'.$L->get('treasurer-address').'</label>';
+    $html .= '<input name="treasurerAddress" type="text" class="form-control" value="'.$this->getValue('treasurerAddress').'">';
+    $html .= '<span class="tip">'.$L->get('treasurer-address-tip').'</span>';
+	$html .= '</div>'.PHP_EOL;
+	
+    $html .= '<br>';
+
     // GDPR
     $html .= '<hr><h4>'.$L->get('gdpr-header').'</h4>';
     $html .= $L->get('gdpr-header-tip');
@@ -414,8 +436,8 @@ class pluginBookingForm extends Plugin {
     IF(isset($_POST['numberOfTickets'])){
       $this->numberOfTickets = trim(strip_tags($_POST['numberOfTickets']));
     }
-    IF(isset($_POST['paymantConfirmed'])){
-      $this->paymantConfirmed = trim(strip_tags($_POST['paymantConfirmed']));
+    IF(isset($_POST['paymentOption'])){
+      $this->paymentOption = trim(strip_tags($_POST['paymentOption']));
     }
     IF(isset($_POST['otherPartyNames'])){
       $this->otherPartyNames = trim(strip_tags($_POST['otherPartyNames']));
@@ -433,6 +455,15 @@ class pluginBookingForm extends Plugin {
 
 	private function validatePost(){
 		global $L;
+		
+		IF(trim($this->otherPartyNames) ==='') {
+			$totalCountOfPeople = 1;
+		}
+		ELSE {
+			$otherPartyNamesArray = preg_split('#(?<!\\\)\,#', trim($this->otherPartyNames) ); 
+			$totalCountOfPeople = count($otherPartyNamesArray)+1;
+		}
+		
 		IF(trim($this->eventName)==='')
 			$error = $L->get('select-the-event').'<br>'; 
 		ELSEIF (trim($this->senderName)==='')
@@ -445,10 +476,12 @@ class pluginBookingForm extends Plugin {
 			$error = $L->get('enter-phone-number').'<br>';
 		ELSEIF (trim($this->numberOfTickets) < 1)
 			$error = $L->get('ticket-count-zero-warning').'<br>';
-		ELSEIF (trim($this->paymantConfirmed) ==='No')
+		ELSEIF (trim($this->paymentOption) ==='')
 			$error = $L->get('confirm-payment').'<br>';
 		ELSEIF (trim($this->otherPartyNames) ==='' and trim($this->numberOfTickets) > 1)
 			$error = $L->get('other-party-names-needed').'<br>';
+		ELSEIF (trim($this->otherPartyNames) <>'' and trim($this->numberOfTickets) <> $totalCountOfPeople )
+			$error = $L->get('tickets-not-equal-to-people').'<br>';			
 		ELSEIF ($this->getValue('gdpr-checkbox') && !$_POST['gdpr-checkbox']) {
 			$error = $L->get('accept-privacy-policy').'<br>';
 		}
@@ -472,6 +505,18 @@ class pluginBookingForm extends Plugin {
 	private function getEmailText(){
 		global $L;
 
+		SWITCH($this->paymentOption)
+			{
+				case "Cheque":
+					$paymentOptionDetail	= $L->get('treasurer-address-pre-text').$this->getValue('treasurerAddress');
+					break;
+				case "B2Btransfer":
+					$paymentOptionDetail	= $L->get('bank-detail-pre-text').$this->getValue('bankDetails');
+					break;
+				default: // just set to blank
+					$paymentOptionDetail	= "Payment option is missing - please check";
+			}
+
 		IF($this->isHtml()) {
 			$emailText  = '<b>'.$L->get('booking-event')	.': </b>'.$this->eventName			.'<br>';
 			$emailText .= '<b>'.$L->get('booking-name')		.': </b>'.$this->senderName			.'<br>';
@@ -480,7 +525,7 @@ class pluginBookingForm extends Plugin {
 			$emailText .= '<b>'.$L->get('booking-phone')	.': </b>'.$this->senderPhone		.'<br>';
 			$emailText .= '<b>'.$L->get('booking-tickets')	.': </b>'.$this->numberOfTickets	.'<br>';
 			$emailText .= '<b>'.$L->get('booking-pickup')	.': </b>'.$this->pickupPoint    	.'<br>';
-			$emailText .= '<b>'.$L->get('booking-payment')	.': </b>'.$this->paymantConfirmed	.'<br>';
+			$emailText .= '<b>'.$L->get('booking-payment')	.': </b>'.$paymentOptionDetail		.'<br>';
 			$emailText .= '<b>'.$L->get('booking-others')	.': </b>'.$this->otherPartyNames	.'<br>';
 			$emailText .= '<b>'.$L->get('booking-sit-near')	.': </b>'.$this->sittingNear		.'<br>';
 			$emailText .= '<b>'.$L->get('booking-needs')	.': </b>'.nl2br($this->specialNeeds).'<br>';
@@ -497,7 +542,7 @@ class pluginBookingForm extends Plugin {
 			$emailText .= $L->get('booking-phone')			.': '.$this->senderPhone		."\r\n\r";
 			$emailText .= $L->get('booking-tickets')		.': '.$this->numberOfTickets	."\r\n\r";
 			$emailText .= $L->get('booking-pickup')			.': '.$this->pickupPoint		."\r\n\r";
-			$emailText .= $L->get('booking-payment')		.': '.$this->paymantConfirmed	."\r\n\r";
+			$emailText .= $L->get('booking-payment')		.': '.$paymentOptionDetail		."\r\n\r";
 			$emailText .= $L->get('booking-others')			.': '.$this->otherPartyNames	."\r\n\r";
 			$emailText .= $L->get('booking-sit-near')		.': '.$this->sittingNear		."\r\n\r";
 			$emailText .= $L->get('booking-needs')			.': '.$this->specialNeeds		."\r\n\r";
@@ -512,7 +557,7 @@ class pluginBookingForm extends Plugin {
 	private function frontendMessage(){
 		global $L;
 		IF($this->success) {
-			$html = '<div class="alert alert-success">' .$L->get('booking-confirmation'). '</div>' ."\r\n";
+			$html = '<div class="alert alert-success">' .$L->get('booking-confirmation-screen'). '</div>' ."\r\n";
 		} ELSEIF(!is_bool($this->error)) {
 			$html = '<div class="alert alert-danger">'. $this->error. '</div>' ."\r\n";
 		} ELSEIF($this->error) {
@@ -583,7 +628,7 @@ class pluginBookingForm extends Plugin {
 		IF ($SentReceipt) {
 			$success = mail($senderName	."<". $senderEmail.">", 								// To:		Sent receipt back to user
 							$subject	.' ('.$this->eventName.')', 							// Subject:	Same Subject
-							$L->get('booking-confirmation')."\r\n\r\n".$this->getEmailText(),	// Same message with prefix, eg "thank you for booking"
+							$L->get('booking-confirmation-email')."\r\n\r\n".$this->getEmailText(),	// Same message with prefix, eg "thank you for booking"
 							$email_headers														// Same From: ReplyTo
 							);
 		}
@@ -689,7 +734,7 @@ class pluginBookingForm extends Plugin {
 		$this->senderPhone		= '';
 		$this->numberOfTickets	= 0;
 		$this->pickupPoint		= '';
-		$this->paymantConfirmed	= 'No';
+		$this->paymentOption	= '';
 		$this->otherPartyNames	= '';
 		$this->sittingNear		= '';
 		$this->specialNeeds		= '';
@@ -735,14 +780,14 @@ class pluginBookingForm extends Plugin {
 		$logEventFile = $this->workspace().$this->eventName.'.csv';		
 		IF ( !file_exists($logEventFile) ) {
 			$fileHeader = array('EventName','BookerName','BookerEmail','BookerPhone','Tickets','PickupPoint',
-								'Paid','OtherNames','SitNear','SpecialNeeds','TimeBooked');
+								'PayMethod','OtherNames','SitNear','SpecialNeeds','TimeBooked');
 			$handle = fopen($logEventFile, "a");
 			fputcsv($handle, $fileHeader);
 			fclose($handle);		
 		}
 
 		$booking = array($this->eventName,$this->senderName,$this->senderEmail,$this->senderPhone,$this->numberOfTickets,$this->pickupPoint
-						,$this->paymantConfirmed,$this->otherPartyNames,$this->sittingNear,$this->specialNeeds,$currentTime );
+						,$this->paymentOption,$this->otherPartyNames,$this->sittingNear,$this->specialNeeds,$currentTime );
 
 		$handle = fopen($logEventFile, "a");
 		fputcsv($handle, $booking );
