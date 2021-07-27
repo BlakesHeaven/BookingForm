@@ -25,290 +25,332 @@ class pluginBookingForm extends Plugin {
 	private $success			= false;
 	private $error				= false;
 	private $reCaptchaResult	= false;
-	private $loadOnController	= array('BookingForm');
+	private $loadOnController	= array('BookingForm','dashboard','configure-plugin');
 
-
-  public function init() {
-    $this->dbFields = array(
-		'email' 						=> '',
-		'page'  						=> '',
-		'type'  						=> 'text',
-		'subject'						=> '',
-		'smtphost'						=> '',
-		'smtpport'						=> '',
-		'username'						=> '',
-		'password'						=> '',
-		'bankDetails'					=> '',
-		'treasurerAddress'				=> '',
-		'google-recaptcha'				=> '',
-		'recaptcha-site-key'			=> '',
-		'recaptcha-secret-key'			=> '',
-		'sendEmailFrom'					=> 'fromUser',
-		'domainAddress'					=> '',
-		'gdpr-checkbox'					=> '',
-		'gdpr-checkbox-text'			=> '',
-		'numberOfBookingLogsToDisplay'	=> 6
-    );
-  }
-
-  // config form
-  public function form() {
-
-    global $site, $L, $staticPages;
-
-	$fileUrl = $site->url();
-	$numberOfBookingLogsToDisplay = $this->getValue('numberOfBookingLogsToDisplay');
-	$count = 1;
-
-    $html  = '';
-	$html .= '<div class="alert alert-primary" role="alert">';
-	$html .= $this->description();
-	$html .= '</div>';
-
-    // create pageOptions;
-    $pageOptions = array();
-
-    // get all content as page
-    foreach ($staticPages as $page) {
-      $pageOptions[$page->key()] = $page->title();
-    }
-    // sort by name
-    ksort($pageOptions);
-
-    // TO: email address
-	$directory = $this->workspace();
-	
-	array_multisort(array_map('filemtime', (
-		$csvFilesArray = glob($directory . "*.csv")
-			)), SORT_DESC, $csvFilesArray);
-
-    $html .= '<h4>'.$L->get('display-booking-logs-title').'</h4>';
-    $html .= $L->get('display-booking-logs-desc');
-
-	$html .= '<div>';
-	$html .= '<label>'.$L->get('number-of-booking-logs-to-display-label').'</label>';
-	$html .= '<input id="jsnumberOfBookingLogsToDisplay" name="numberOfBookingLogsToDisplay" type="number" value="'.$this->getValue('numberOfBookingLogsToDisplay').'">';
-	$html .= '<span class="tip">'.$L->get('number-of-booking-logs-to-display-tip').'</span>';
-	$html .= '</div>';
-
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('results-file-label').'</label>';
-	$html .= '<span class="tip">'.$L->get('results-file-tip').'</span>';
-
-	// Display booking log entries in Plugin Settings page
-	foreach($csvFilesArray as $csvFile) {
-
-		if ($count++ > $numberOfBookingLogsToDisplay ) break;
-		clearstatcache(true);		
-		$html .= "<hr><label><b>".basename($csvFile)." | Last changed: ".date("d F Y H:i", filemtime("$csvFile"))."</b></label>";
-		
-		$row = 1;
-		if (($handle = fopen("$csvFile", "r")) !== FALSE) {		
-
-			$html .= '<table border="1"  width="100%">';
-		   
-			while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-				$num = count($data);
-				if ($row == 1) {
-					$html .= '<thead><tr>';
-				}else{
-					$html .= '<tr>';
-				}
-			   
-				for ($column=1; $column < $num; $column++) { // $column=0 would be the first column, it is skipped here.
-
-					if(empty($data[$column])) {
-					   $value = "&nbsp;";
-					}else{
-					   $value = $data[$column];
-					}
-					if ($row == 1) {
-						$html .= '<th>'.$value.'</th>';
-					}else{
-						$html .= '<td>'.$value.'</td>';
-					}
-				}
-			   
-				if ($row == 1) {
-					$html .= '</tr></thead><tbody>';
-				}else{
-					$html .= '</tr>';
-				}
-				$row++;
-			}
-		   
-			$html .= '</tbody></table>';
-			fclose($handle);
-		}
+	public function init() {
+		$this->dbFields = array(
+			'email' 						=> '',
+			'page'  						=> '',
+			'bookingsDisplayPage'			=> 'Plugin',
+			'type'  						=> 'text',
+			'subject'						=> '',
+			'smtphost'						=> '',
+			'smtpport'						=> '',
+			'username'						=> '',
+			'password'						=> '',
+			'bankDetails'					=> '',
+			'treasurerAddress'				=> '',
+			'google-recaptcha'				=> '',
+			'recaptcha-site-key'			=> '',
+			'recaptcha-secret-key'			=> '',
+			'sendEmailFrom'					=> 'fromUser',
+			'domainAddress'					=> '',
+			'gdpr-checkbox'					=> '',
+			'gdpr-checkbox-text'			=> '',
+			'numberOfBookingLogsToDisplay'	=> 6
+		);
 	}
 
-    $html .= '</div>'.PHP_EOL;
+	// config form
+	public function form() {
 
-    $html .= '<hr><h4>'.$L->get('booking-form-config-title').'</h4>';
-    $html .= $L->get('booking-form-config-desc');
+		global $site, $L, $staticPages;
+
+		$numberOfBookingLogsToDisplay = $this->getValue('numberOfBookingLogsToDisplay');
+		$count = 1;
+
+		// create pageOptions;
+		$pageOptions = array();
+
+		// get all content as page
+		foreach ($staticPages as $page) {
+		  $pageOptions[$page->key()] = $page->title();
+		}
+		// sort by name
+		ksort($pageOptions);
+
+		// TO: email address
+		$directory = $this->workspace();
+		
+		array_multisort(array_map('filemtime', (
+			$csvFilesArray = glob($directory . "*.csv")
+				)), SORT_DESC, $csvFilesArray);
+
+		$html  = '';
+		$html .= '<div class="alert alert-primary" role="alert">';
+		$html .= $this->description();
+		$html .= '</div>';
+		$html .= '<div class="BookingForm-plugin">';
+
+		$html .= '<h4>'.$L->get('display-booking-logs-title').'</h4>';
+		$html .= $L->get('display-booking-logs-desc');
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';
+		
+			// select Booking Log Display page
+			$html .= '<div class="divTableCell">';
+				$html .= '<label>'.$L->get('bookings-display-page-label').'</label>';
+				$html .= '<select name="bookingsDisplayPage">'.PHP_EOL;
+				$html .= '<option value="">- '.$L->get('bookings-display-page').' -</option>'.PHP_EOL;
+				$html .= '<option value="Dashboard"'.($this->getValue('bookingsDisplayPage')==='Dashboard'?'selected':'')	.'>ADMIN=> Dashboard		</option>'.PHP_EOL;
+				$html .= '<option value="Plugin"'	.($this->getValue('bookingsDisplayPage')==='Plugin'?'selected':'')		.'>ADMIN=> Plugin Settings	</option>'.PHP_EOL;
+					foreach ($pageOptions as $key => $bookingsDisplayPageValue) {
+						$html .= '<option value="'.$key.'" '.($this->getValue('bookingsDisplayPage')==$key?'selected':'').'>'.$bookingsDisplayPageValue.'</option>'.PHP_EOL;	
+				}
+				$html .= '</select>';
+				$html .= '<span class="tip">'.$L->get('bookings-display-page-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+
+			// Number of booking logs to display
+			$html .= '<div class="divTableCell">';
+				$html .= '<label>'.$L->get('number-of-booking-logs-to-display-label').'</label>';
+				$html .= '<input id="jsnumberOfBookingLogsToDisplay" name="numberOfBookingLogsToDisplay" type="number" value="'.$this->getValue('numberOfBookingLogsToDisplay').'">';
+				$html .= '<span class="tip">'.$L->get('number-of-booking-logs-to-display-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';
+
+		IF ($this->getValue('bookingsDisplayPage')=='Plugin') {
+			$html .= '<div>';
+			$html .= '<label>'.$L->get('results-file-label').'</label>';
+			$html .= '<span class="tip">'.$L->get('results-file-tip').'</span>';
+
+			// Display booking log entries in Plugin Settings page
+			foreach($csvFilesArray as $csvFile) {
+
+				if ($count++ > $numberOfBookingLogsToDisplay ) break;
+				clearstatcache(true);		
+				$html .= "<hr><label><b>".basename($csvFile)." | Last changed: ".date("d F Y H:i", filemtime("$csvFile"))."</b></label>";
+				
+				$row = 1;
+				if (($csvLine = fopen("$csvFile", "r")) !== FALSE) {		
+
+					$html .= '<table border="1"  width="100%">';
+				   
+					while (($data = fgetcsv($csvLine, 1000, ",")) !== FALSE) {
+						
+						$numOfColumns = count($data);
+						if ($row == 1) {
+							$html .= '<thead><tr>';
+						}else{
+							$html .= '<tr>';
+						}
+					   
+						for ($column=1; $column < $numOfColumns; $column++) { // $column=0 would be the first column, it is skipped here.
+
+							if(empty($data[$column])) {
+							   $value = "&nbsp;";
+							}else{
+							   $value = $data[$column];
+							}
+							if ($row == 1) {
+								$html .= '<th>'.$value.'</th>';
+							}else{
+								$html .= '<td>'.$value.'</td>';
+							}
+						}
+					   
+						if ($row == 1) {
+							$html .= '</tr></thead><tbody>';
+						}else{
+							$html .= '</tr>';
+						}
+						$row++;
+					}
+				   
+					$html .= '</tbody></table>';
+					fclose($csvLine);
+				}
+			}
+
+			$html .= '</div>'.PHP_EOL;
+		}
+
+		$html .= '<hr><h4>'.$L->get('booking-form-config-title').'</h4>';
+		$html .= $L->get('booking-form-config-desc');
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';
+			// TO: email address
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('Your Email').'</label>';
+			$html .= '<input id="jsemail" name="email" type="text" class="form-control" value="'.$this->getValue('email').'">';
+			$html .= '<span class="tip">'.$L->get('your-email-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+			// Send from which address
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('send-from-which-address').'</label>';
+			$html .= '<select name="sendEmailFrom">'.PHP_EOL;
+			$html .= '<option value="fromUser" '	.($this->getValue('sendEmailFrom')==='fromUser'?'selected':'').'>'	.$L->get('send-from-user')	.'</option>'.PHP_EOL;
+			$html .= '<option value="fromTo" '		.($this->getValue('sendEmailFrom')==='fromTo'?'selected':'').'>'	.$L->get('send-from-to')	.'</option>'.PHP_EOL;
+			$html .= '<option value="fromDomain" '	.($this->getValue('sendEmailFrom')==='fromDomain'?'selected':'').'>'.$L->get('send-from-domain').'</option>'.PHP_EOL;
+			$html .= '</select>';
+			$html .= '<span class="tip">'.$L->get('send-from-which-address-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';
+		
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';		
+			// select static page
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('select-content-label').'</label>';
+			$html .= '<select name="page">'.PHP_EOL;
+			$html .= '<option value="">- '.$L->get('static-pages').' -</option>'.PHP_EOL;
+				foreach ($pageOptions as $key => $value) {
+				  $html .= '<option value="'.$key.'" '.($this->getValue('page')==$key?'selected':'').'>'.$value.'</option>'.PHP_EOL;
+				}
+			$html .= '</select>';
+			$html .= '<span class="tip">'.$L->get('select-content-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+			  // FROM domain email address
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('Domain Email').'</label>';
+			$html .= '<input id="jsdomainFromAddress" name="domainAddress" type="text" class="form-control" value="'	.$this->getValue('domainAddress').'">';
+			$html .= '<span class="tip">'.$L->get('domain-email-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';		
+			// select email type
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('Content Type').'</label>';
+			$html .= '<select name="type">'.PHP_EOL;
+			$html .= '<option value="text" '.($this->getValue('type')=='text'?'selected':'').'>'.$L->get('text').'</option>'.PHP_EOL;
+			$html .= '<option value="html" '.($this->getValue('type')=='html'?'selected':'').'>'.$L->get('html').'</option>'.PHP_EOL;
+			$html .= '</select>';
+			$html .= '</div>'.PHP_EOL;
+			// email Subject
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('email-subject').'</label>';
+			$html .= '<input name="subject" type="text" class="form-control" value="'.$this->getValue('subject').'">';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';
+		
+		$html .= '<br>';
+
+		/**
+		 * SMTP Settings
+		 * Contribution by Dominik Sust
+		 * Git: https://github.com/HarleyDavidson86/bludit-plugins/commit/eb395c73ea4800a00f4ec5e9c9baabc5b9db19e8 
+		**/
+		$html .= '<hr><h4>SMTP</h4>';
+		$html .= $L->get('smtp-options');
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';
+			// SMTP Host
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('smtp-host').'</label>';
+			$html .= '<input name="smtphost" type="text" class="form-control" value="'.$this->getValue('smtphost').'">';
+			$html .= '</div>'.PHP_EOL;
+
+			// SMTP Port
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('smtp-port').'</label>';
+			$html .= '<input name="smtpport" type="text" class="form-control" value="'.$this->getValue('smtpport').'">';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';
+
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';		
+			// SMTP Username
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('smtp-username').'</label>';
+			$html .= '<input name="username" type="text" class="form-control" value="'.$this->getValue('username').'">';
+			$html .= '</div>'.PHP_EOL;
+			// SMTP Password
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('smtp-password').'</label>';
+			$html .= '<input name="password" type="password" class="form-control" value="'.$this->getValue('password').'">';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';		
+
+		$html .= '<br>';
+
+		// Payment Options
+		$html .= '<hr><h4>'.$L->get('payment-detail-header').'</h4>';
+		$html .= $L->get('payment-detail-header-tip');
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';		
+			// BankDetails
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('bank-details').'</label>';
+			$html .= '<input name="bankDetails" type="text" class="form-control" value="'.$this->getValue('bankDetails').'">';
+			$html .= '<span class="tip">'.$L->get('bank-details-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+			// Treasurer Address
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('treasurer-address').'</label>';
+			$html .= '<input name="treasurerAddress" type="text" class="form-control" value="'.$this->getValue('treasurerAddress').'">';
+			$html .= '<span class="tip">'.$L->get('treasurer-address-tip').'</span>';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';		
+		
+		$html .= '<br>';
+
+		// GDPR
+		$html .= '<hr><h4>'.$L->get('gdpr-header').'</h4>';
+		$html .= $L->get('gdpr-header-tip');
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';	
+		// Activate GDPR Checkbox
+		$html .= '<div class="divTableCell">';
+		$html .= '<label>'.$L->get('gdpr-checkbox-label').'</label>';
+		$html .= '<select name="gdpr-checkbox">'.PHP_EOL;
+		$html .= '<option value="false" '.($this->getValue('gdpr-checkbox')==false?'selected':'').'>'.$L->get('deactivate').'</option>'.PHP_EOL;
+		$html .= '<option value="true" '.($this->getValue('gdpr-checkbox')==true?'selected':'').'>'.$L->get('activate').'</option>'.PHP_EOL;
+		$html .= '</select>';
+		$html .= '</div>'.PHP_EOL;
+		// GDPR Chechbox Text
+		$html .= '<div class="divTableCell">';
+		$html .= '<label>'.$L->get('gdpr-checkbox-legal-text').'</label>';
+		$html .= '<input name="gdpr-checkbox-text" type="text" class="form-control" value="'.$this->getValue('gdpr-checkbox-text').'">';
+		$html .= '<span class="tip">'.$L->get('gdpr-checkbox-text-tip').'</span>';
+		$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';		
+
+		$html .= '<br>';
+
+		// Google reCaptcha v2
+		$html .= '<hr><h4>Spam Protection</h4>';
+		$html .= $L->get('anti-spam-info');
+
+		// activate reCaptcha
+		$html .= '<div>';
+		$html .= '<label>'.$L->get('activate-google-recaptcha-v2').'</label>';
+		$html .= '<select name="google-recaptcha">'.PHP_EOL;
+		$html .= '<option value="false" '.($this->getValue('google-recaptcha')==false?'selected':'').'>'.$L->get('deactivate').'</option>'.PHP_EOL;
+		$html .= '<option value="true" '.($this->getValue('google-recaptcha')==true?'selected':'').'>'.$L->get('activate').'</option>'.PHP_EOL;
+		$html .= '</select>';
+		$html .= '</div>'.PHP_EOL;
+
+		$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody"><div class="divTableRow">';	
+			// website key
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('recaptcha-website-key').'</label>';
+			$html .= '<input name="recaptcha-site-key" type="text" class="form-control" value="'.$this->getValue('recaptcha-site-key').'" autocomplete="off">';
+			$html .= '</div>'.PHP_EOL;
+			// secret key
+			$html .= '<div class="divTableCell">';
+			$html .= '<label>'.$L->get('recaptcha-secret-key').'</label>';
+			$html .= '<input name="recaptcha-secret-key" type="text" class="form-control" value="'.$this->getValue('recaptcha-secret-key').'" autocomplete="off">';
+			$html .= '</div>'.PHP_EOL;
+		$html .= '</div></div></div>';		
+
+		$html .= '<br><br><br>';
+
+		$html .= '<div>';// Close class="BookingForm-plugin">';
+
+		return $html;
 	
-    // TO: email address
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('Your Email').'</label>';
-    $html .= '<input id="jsemail" name="email" type="text" class="form-control" value="'.$this->getValue('email').'">';
-    $html .= '<span class="tip">'.$L->get('your-email-tip').'</span>';
-    $html .= '</div>'.PHP_EOL;
+	}
 
-    // Send from which address
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('send-from-which-address').'</label>';
-    $html .= '<select name="sendEmailFrom">'.PHP_EOL;
-    $html .= '<option value="fromUser" '	.($this->getValue('sendEmailFrom')==='fromUser'?'selected':'').'>'	.$L->get('send-from-user')	.'</option>'.PHP_EOL;
-    $html .= '<option value="fromTo" '		.($this->getValue('sendEmailFrom')==='fromTo'?'selected':'').'>'	.$L->get('send-from-to')	.'</option>'.PHP_EOL;
-    $html .= '<option value="fromDomain" '	.($this->getValue('sendEmailFrom')==='fromDomain'?'selected':'').'>'.$L->get('send-from-domain').'</option>'.PHP_EOL;
-    $html .= '</select>';
-    $html .= '<span class="tip">'.$L->get('send-from-which-address-tip').'</span>';
-    $html .= '</div>'.PHP_EOL;
+	public function beforeSiteLoad()
+	{
+		$login = new Login();
 
-      // FROM domain email address
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('Domain Email').'</label>';
-    $html .= '<input id="jsdomainFromAddress" name="domainAddress" type="text" class="form-control" value="'	.$this->getValue('domainAddress').'">';
-    $html .= '<span class="tip">'.$L->get('domain-email-tip').'</span>';
-    $html .= '</div>'.PHP_EOL;
-
-    // select static page
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('select-content-label').'</label>';
-    $html .= '<select name="page">'.PHP_EOL;
-    $html .= '<option value="">- '.$L->get('static-pages').' -</option>'.PHP_EOL;
-    foreach ($pageOptions as $key => $value) {
-      $html .= '<option value="'.$key.'" '.($this->getValue('page')==$key?'selected':'').'>'.$value.'</option>'.PHP_EOL;
-    }
-    $html .= '</select>';
-    $html .= '<span class="tip">'.$L->get('select-content-tip').'</span>';
-    $html .= '</div>'.PHP_EOL;
-
-    // select email type
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('Content Type').'</label>';
-    $html .= '<select name="type">'.PHP_EOL;
-    $html .= '<option value="text" '.($this->getValue('type')=='text'?'selected':'').'>'.$L->get('text').'</option>'.PHP_EOL;
-    $html .= '<option value="html" '.($this->getValue('type')=='html'?'selected':'').'>'.$L->get('html').'</option>'.PHP_EOL;
-    $html .= '</select>';
-    $html .= '</div>'.PHP_EOL;
-
-    // email Subject
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('email-subject').'</label>';
-    $html .= '<input name="subject" type="text" class="form-control" value="'.$this->getValue('subject').'">';
-    $html .= '</div>'.PHP_EOL;
-
-    $html .= '<br>';
-
-    /**
-     * SMTP Settings
-     * Contribution by Dominik Sust
-     * Git: https://github.com/HarleyDavidson86/bludit-plugins/commit/eb395c73ea4800a00f4ec5e9c9baabc5b9db19e8 
-    **/
-    $html .= '<hr><h4>SMTP</h4>';
-    $html .= $L->get('smtp-options');
-
-    // SMTP Host
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('smtp-host').'</label>';
-    $html .= '<input name="smtphost" type="text" class="form-control" value="'.$this->getValue('smtphost').'">';
-    $html .= '</div>'.PHP_EOL;
-
-    // SMTP Port
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('smtp-port').'</label>';
-    $html .= '<input name="smtpport" type="text" class="form-control" value="'.$this->getValue('smtpport').'">';
-    $html .= '</div>'.PHP_EOL;
-
-    // SMTP Username
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('smtp-username').'</label>';
-    $html .= '<input name="username" type="text" class="form-control" value="'.$this->getValue('username').'">';
-    $html .= '</div>'.PHP_EOL;
-
-    // SMTP Password
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('smtp-password').'</label>';
-    $html .= '<input name="password" type="password" class="form-control" value="'.$this->getValue('password').'">';
-    $html .= '</div>'.PHP_EOL;
-    
-    $html .= '<br>';
-
-    // Payment Options
-    $html .= '<hr><h4>'.$L->get('payment-detail-header').'</h4>';
-    $html .= $L->get('payment-detail-header-tip');
-
-    // BankDetails
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('bank-details').'</label>';
-    $html .= '<input name="bankDetails" type="text" class="form-control" value="'.$this->getValue('bankDetails').'">';
-    $html .= '<span class="tip">'.$L->get('bank-details-tip').'</span>';
-	$html .= '</div>'.PHP_EOL;
-
-    // Treasurer Address
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('treasurer-address').'</label>';
-    $html .= '<input name="treasurerAddress" type="text" class="form-control" value="'.$this->getValue('treasurerAddress').'">';
-    $html .= '<span class="tip">'.$L->get('treasurer-address-tip').'</span>';
-	$html .= '</div>'.PHP_EOL;
-	
-    $html .= '<br>';
-
-    // GDPR
-    $html .= '<hr><h4>'.$L->get('gdpr-header').'</h4>';
-    $html .= $L->get('gdpr-header-tip');
-
-    // Activate GDPR Checkbox
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('gdpr-checkbox-label').'</label>';
-    $html .= '<select name="gdpr-checkbox">'.PHP_EOL;
-    $html .= '<option value="false" '.($this->getValue('gdpr-checkbox')==false?'selected':'').'>'.$L->get('deactivate').'</option>'.PHP_EOL;
-    $html .= '<option value="true" '.($this->getValue('gdpr-checkbox')==true?'selected':'').'>'.$L->get('activate').'</option>'.PHP_EOL;
-    $html .= '</select>';
-    $html .= '</div>'.PHP_EOL;
-
-    // GDPR Chechbox Text
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('gdpr-checkbox-legal-text').'</label>';
-    $html .= '<input name="gdpr-checkbox-text" type="text" class="form-control" value="'.$this->getValue('gdpr-checkbox-text').'">';
-    $html .= '<span class="tip">'.$L->get('gdpr-checkbox-text-tip').'</span>';
-    $html .= '</div>'.PHP_EOL;
-
-    $html .= '<br>';
-
-    // Google reCaptcha v2
-    $html .= '<hr><h4>Spam Protection</h4>';
-    $html .= $L->get('anti-spam-info');
-
-    // activate reCaptcha
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('activate-google-recaptcha-v2').'</label>';
-    $html .= '<select name="google-recaptcha">'.PHP_EOL;
-    $html .= '<option value="false" '.($this->getValue('google-recaptcha')==false?'selected':'').'>'.$L->get('deactivate').'</option>'.PHP_EOL;
-    $html .= '<option value="true" '.($this->getValue('google-recaptcha')==true?'selected':'').'>'.$L->get('activate').'</option>'.PHP_EOL;
-    $html .= '</select>';
-    $html .= '</div>'.PHP_EOL;
-
-    // website key
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('recaptcha-website-key').'</label>';
-    $html .= '<input name="recaptcha-site-key" type="text" class="form-control" value="'.$this->getValue('recaptcha-site-key').'" autocomplete="off">';
-    $html .= '</div>'.PHP_EOL;
-
-    // secret key
-    $html .= '<div>';
-    $html .= '<label>'.$L->get('recaptcha-secret-key').'</label>';
-    $html .= '<input name="recaptcha-secret-key" type="text" class="form-control" value="'.$this->getValue('recaptcha-secret-key').'" autocomplete="off">';
-    $html .= '</div>'.PHP_EOL;
-
-    $html .= '<br>';
-
-    // output
-    $html .= '<br><br>';
-    return $html;
-
-  }
+		if ( $login->isLogged()) {
+			$GLOBALS['RoleName'] = $login->Role();
+		}
+		else {
+			$GLOBALS['RoleName'] = 'No Role';
+		}
+	}
 
   // Load CSS for ADMIN form
 	public function adminHead()
@@ -319,139 +361,372 @@ class pluginBookingForm extends Plugin {
 
 		// Include plugin's CSS files
 		$html = $this->includeCSS('style.css');
+		$html .= $this->includeCSS('BookingForm.css');
 
 		return $html;
 	}
 
+	public function dashboard()
+	{
+		global $L;
+
+		IF ($this->getValue('bookingsDisplayPage')=='Dashboard') {
+			$numberOfBookingLogsToDisplay = $this->getValue('numberOfBookingLogsToDisplay');
+			$count = 1;
+			$directory = $this->workspace();
+		
+			array_multisort(array_map('filemtime', (
+				$csvFilesArray = glob($directory . "*.csv")
+					)), SORT_DESC, $csvFilesArray);
+				
+			$html = '<div class="my-5 pt-4 border-top">';
+			$html .= '<h4 class="pb-3">'.$L->get('results-file-label').'</h4>';
+			$html .= '<h5 class="pb-3">'.$L->get('results-file-tip').'</h5>';
+
+			// Display booking log entries in Plugin Settings page
+			foreach($csvFilesArray as $csvFile) {
+
+				if ($count++ > $numberOfBookingLogsToDisplay ) break;
+				clearstatcache(true);		
+				$html .= "<hr><label><b>".basename($csvFile)." | Last changed: ".date("d F Y H:i", filemtime("$csvFile"))."</b></label>";
+				
+				$row = 1;
+				if (($csvLine = fopen("$csvFile", "r")) !== FALSE) {		
+
+					$html .= '<table border="1"  width="100%">';
+				   
+					while (($data = fgetcsv($csvLine, 1000, ",")) !== FALSE) {
+						$numOfColumns = count($data);
+						if ($row == 1) {
+							$html .= '<thead><tr>';
+						}else{
+							$html .= '<tr>';
+						}
+					   
+						for ($column=1; $column < $numOfColumns; $column++) { // $column=0 would be the first column, it is skipped here.
+
+							if(empty($data[$column])) {
+							   $value = "&nbsp;";
+							}else{
+							   $value = $data[$column];
+							}
+							if ($row == 1) {
+								$html .= '<th>'.$value.'</th>';
+							}else{
+								$html .= '<td>'.$value.'</td>';
+							}
+						}
+					   
+						if ($row == 1) {
+							$html .= '</tr></thead><tbody>';
+						}else{
+							$html .= '</tr>';
+						}
+						$row++;
+					}
+				   
+					$html .= '</tbody></table>';
+					fclose($csvLine);
+				}
+			}
+
+			$html .= '</div>'.PHP_EOL;
+		}
+		return $html;	
+	}
+
   // Load CSS for contact form
-  public function siteHead() {
-    $webhook = $this->getValue('page');
-    IF($this->webhook($webhook)) {
-      $html = '';
-      $css = THEME_DIR_CSS . 'contact3.css';
-      IF(file_exists($css)) {
-        $html .= Theme::css('css' . DS . 'contact3.css');
-      } else {
-        $html .= '<link rel="stylesheet" href="' .$this->htmlPath(). 'layout' . DS . 'contact3.css">' .PHP_EOL;
-      }
+	public function siteHead() {
+		$webhook = $this->getValue('page');
+		IF($this->webhook($webhook)) {
+		  $html = '';
+		  $css = THEME_DIR_CSS . 'contact3.css';
+		  IF(file_exists($css)) {
+			$html .= Theme::css('css' . DS . 'contact3.css');
+		  } else {
+			$html .= '<link rel="stylesheet" href="' .$this->htmlPath(). 'layout' . DS . 'contact3.css">' .PHP_EOL;
+		  }
 
-      IF($this->getValue('google-recaptcha')){
-        $html .= '<script src="https://www.google.com/recaptcha/api.js"></script>';
-      }
+		  IF($this->getValue('google-recaptcha')){
+			$html .= '<script src="https://www.google.com/recaptcha/api.js"></script>';
+		  }
 
-      return $html;
-    }
-  } 
+		  return $html;
+		}
 
+		$webHookForBookingLog = $this->getValue('bookingsDisplayPage');
+		IF($this->webhook($webHookForBookingLog)) {
+			// Include plugin's CSS files
+			$html = $this->includeCSS('BookingForm.css');
+			
+			return $html;
+		}
+	} 
 
   // Load contact form and send email
-  public function pageEnd(){
-    $webhook = $this->getValue('page');
-    IF($this->webhook($webhook)) {
-      
-      // send email IF submit 
-      IF(isset($_POST['submit'])) {
+  public function pageEnd()
+	{
+		// Event Booking Form
+		$webhook = $this->getValue('page');
+		IF($this->webhook($webhook)) {
+		  
+			// send email IF submit 
+			IF(isset($_POST['submit'])) {
 
-        $this->reCaptchaResult = $this->googleRecaptchaValidation();
+				$this->reCaptchaResult = $this->googleRecaptchaValidation();
 
-        // get post paramaters
-        $this->readPost();
-        $this->error = $this->validatePost();
+				// get post paramaters
+				$this->readPost();
+				$this->error = $this->validatePost();
 
-        // check IF it's a bot
-        IF($this->isBot()) {
-          $this->error = true;
-          // fake success for bot
-          $this->success = true;
-        }
+				// check IF it's a bot
+				IF($this->isBot()) {
+					$this->error = true;
+					// fake success for bot
+					$this->success = true;
+				}
 
-        // IF no error until now, then create and send email
-        IF(!$this->error){
-          IF(empty($this->getValue('smtphost'))) {
-			$this->success = $this->useSendmail(true);	// $SentReceipt = True, ie to sender			  
-            $this->success = $this->useSendmail(false);	// $SentReceipt = false, ie to club
-          } else{
-            $this->success = $this->useSmtp();
-          }
+				// IF no error until now, then create and send email
+				IF(!$this->error){
+					IF(empty($this->getValue('smtphost'))) {
+					$this->success = $this->useSendmail(true);	// $SentReceipt = True, ie to sender			  
+					$this->success = $this->useSendmail(false);	// $SentReceipt = false, ie to club
+					} else{
+						$this->success = $this->useSmtp();
+					}
+					IF($this->success){
+						$this->addBooking();
+						$this->clearForm();
+					}
+				}
+			}
 
-          IF($this->success){
-			$this->addBooking();
-            $this->clearForm();
-          }
-        }
-      }
+			$this->includeContactForm();
+		}
 
-      $this->includeContactForm();
-    }
-  }
+		// Booking Log Display
+		$webHookForBookingLog = $this->getValue('bookingsDisplayPage');
+		IF($this->webhook($webHookForBookingLog)) {
+			
+			global $L, $userRole;
 
-  public function googleRecaptchaForm(){
-    IF($this->getValue('google-recaptcha')){
-      return $html = '<div class="g-recaptcha" data-sitekey="'.$this->getValue('recaptcha-site-key').'"></div>';
-    } else {
-      return;
-    }
-  }
+			$html = '';
+			$numberOfBookingLogsToDisplay = $this->getValue('numberOfBookingLogsToDisplay');
+			$count = 1;
+			$directory = $this->workspace();
+		
+			array_multisort(array_map('filemtime', (
+				$csvFilesArray = glob($directory . "*.csv")
+					)), SORT_DESC, $csvFilesArray);
 
-/****
- * private functions
- *****/
+			$html .= '<div class="BookingForm-plugin">';
+			$html .= '<div class="my-5 pt-4 border-top">';
 
-  private function isBot(){
-    $bot = false;
-    
-    // check interested checkbox (simple honey pot)
-    IF(isset($_POST['interested'])) {
-      $bot = true;
-    }
-    // return bot status
-    return $bot;
-  }
+			$html .= '<div class="divTable" style="width: 100%;" ><div class="divTableBody">';
+			
+				// Display booking log entries
+				foreach($csvFilesArray as $csvFile) {
 
-  private function isHtml(){
-    IF($this->getValue('type') === 'html') {
-      return true;
-    } else {
-      return false;
-    }
-  }
+					if ($count++ > $numberOfBookingLogsToDisplay ) break;
+					clearstatcache(true);
+					unset($assoc_array); 
+					$assoc_array = array();
+					unset($result); 
+					$result = array();
+					
+					$html .= "<br><b>".str_replace('.csv','',basename($csvFile))."</b> | Last booking taken on: ".date("d F Y H:i", filemtime("$csvFile"));
 
-  private function readPost(){
-    // removes bad content - just a little protection - could be better
-    IF(isset($_POST['eventName'])) { 
-      $this->eventName =  trim(strip_tags($_POST['eventName']));
-    }
-    IF(isset($_POST['senderName'])) { 
-      $this->senderName =  trim(strip_tags($_POST['senderName']));
-    }
-    IF(isset($_POST['senderEmail'])) {
-      $this->senderEmail =  trim(strip_tags(preg_replace("/[^0-9a-zA-ZäöüÄÖÜÈèÉéÂâáÁàÀíÍìÌâÂ@ \-\+\_\.]/", " ", $_POST['senderEmail'])));
-    }
-    IF(isset($_POST['validateEmail'])){
-      $this->validateEmail = trim(strip_tags($_POST['validateEmail']));
-    }
-    IF(isset($_POST['senderPhone'])){
-      $this->senderPhone = trim(strip_tags($_POST['senderPhone']));
+					// get data from csv file into an array with header as array key
+					if (($csvLine = fopen("$csvFile", "r")) !== false) {						// open for reading
+						if (($data = fgetcsv($csvLine, 1000, ",")) !== false) {					// extract header data
+							$keys = $data;														// save as keys
+						}
+						while (($data = fgetcsv($csvLine, 1000, ",")) !== false) {				// loop remaining rows of data
+							$assoc_array[] = array_combine($keys, $data);						// push associative subarrays
+						}
+						fclose($csvLine);														// close when done
+					}
+					//echo "<pre>"; var_export($assoc_array);	echo "</pre>";					// print to screen
+
+					$Hebden			= array_count_values(array_column($assoc_array, 'PickupPoint'))["Hebden"]	;
+					$Colvend		= array_count_values(array_column($assoc_array, 'PickupPoint'))["Colvend"]	;
+					$Hedgerow		= array_count_values(array_column($assoc_array, 'PickupPoint'))["Hedgerow"]	;
+					$OldHall		= array_count_values(array_column($assoc_array, 'PickupPoint'))["OldHall"]	;
+					$Cracoe			= array_count_values(array_column($assoc_array, 'PickupPoint'))["Cracoe"]	;
+					$totalBookings	= $Hebden+$Colvend+$Hedgerow+$OldHall+$Cracoe;
+
+					foreach ($assoc_array as $subarray) {
+						$tempKey = $subarray['PickupPoint'];  // this is the compound value
+						
+						if (isset($result[$tempKey])) {
+							$result[$tempKey]['Tickets'] += $subarray['Tickets'];
+
+						} else {
+							$result[$tempKey] = $subarray;
+						}
+					}
+
+					//echo "<pre>"; var_export(array_values($result)); echo "</pre>"; // displays whole prepared array 
+
+					$html .= '<table border="1"  width="100%">';
+
+					$totalTickets = 0;
+
+
+					$html .= '<thead><tr><td><b>Pickup Point</b></td> <td><b>Bookings</b></td> <td><b>Tickets<b></td></tr></thead>';
+
+					foreach($result as $row) {
+						$html .= '<tr><td>' . $row['PickupPoint'] . '</td> <td>'; 
+
+							switch($row['PickupPoint'])
+							{
+									case "Hebden":		$html .=	$Hebden;	break;
+									case "Colvend": 	$html .=	$Colvend;	break;
+									case "Hedgerow":	$html .=	$Hedgerow;	break;
+									case "OldHall": 	$html .=	$OldHall;	break;
+									case "Cracoe":  	$html .=	$Cracoe;	break;
+									default;			$html .=	'0';
+							}
+
+						$html .= '</td> <td>'.$row['Tickets'].'</td></tr>';
+
+						$totalTickets = $totalTickets+$row['Tickets'];
+					}
+					$html .= ' <tfoot><tr><td><b>Totals</b></td> <td><b>'.$totalBookings.'</b></td>  <td><b>'.$totalTickets.'<b></td></tr> </tfoot>';
+					$html .= '</table><hr>';
+				}				
+			$html .= '</div></div>'; // End of Table & TableBody
+
+			// Only if User is an Admin
+			IF (in_array($userRole, array("admin")) )	// "editor" is another option to grant permission to.
+			{
+				$count = 1;
+				$html .= '<br><b>This is for Admin only</b>';
+				// Display booking log entries in Plugin Settings page
+				foreach($csvFilesArray as $csvFile) {
+
+					if ($count++ > $numberOfBookingLogsToDisplay ) break;
+					clearstatcache(true);		
+					$html .= "<hr><b>".str_replace('.csv','',basename($csvFile))."</b> | Last changed: ".date("d F Y H:i", filemtime("$csvFile"));
+					
+					$row = 1;
+					if (($csvLine = fopen("$csvFile", "r")) !== FALSE) {		
+
+						$html .= '<table border="1"  width="100%">';
+					   
+						while (($data = fgetcsv($csvLine, 1000, ",")) !== FALSE) {
+							$numOfColumns = count($data);
+						
+							if ($row == 1) {
+								$html .= '<thead><tr>';
+							}else{
+								$html .= '<tr>';
+							}
+						   
+							for ($column=1; $column < $numOfColumns; $column++) { // $column=0 would be the first column, it is skipped here.
+
+								if(empty($data[$column])) {
+								   $value = "&nbsp;";
+								}else{
+								   $value = $data[$column];
+								}
+								if ($row == 1) {
+									$html .= '<th>'.$value.'</th>';
+								}else{
+									$html .= '<td>'.$value.'</td>';
+								}
+							}
+						   
+							if ($row == 1) {
+								$html .= '</tr></thead><tbody>';
+							}else{
+								$html .= '</tr>';
+							}
+							$row++;
+						}
+					   
+						$html .= '</tbody></table>';
+						fclose($csvLine);
+					}
+				}
+			}
+
+			$html .= '</div>'.PHP_EOL;
+
+			$html .= '<div>';// Close class="BookingForm-plugin">';
+			
+			return $html;
+		}
+		
 	}
-    IF(isset($_POST['numberOfTickets'])){
-      $this->numberOfTickets = trim(strip_tags($_POST['numberOfTickets']));
-    }
-    IF(isset($_POST['paymentOption'])){
-      $this->paymentOption = trim(strip_tags($_POST['paymentOption']));
-    }
-    IF(isset($_POST['otherPartyNames'])){
-      $this->otherPartyNames = trim(strip_tags($_POST['otherPartyNames']));
-    }
-    IF(isset($_POST['pickupPoint'])){
-      $this->pickupPoint = trim(strip_tags($_POST['pickupPoint']));
-	} 
-    IF(isset($_POST['sittingNear'])){
-      $this->sittingNear = trim(strip_tags($_POST['sittingNear']));
-    }
-    IF(isset($_POST['specialNeeds'])){
-      $this->specialNeeds = trim(strip_tags($_POST['specialNeeds']));
-    }
-  }
+
+	public function googleRecaptchaForm(){
+		IF($this->getValue('google-recaptcha')){
+		  return $html = '<div class="g-recaptcha" data-sitekey="'.$this->getValue('recaptcha-site-key').'"></div>';
+		} else {
+		  return;
+		}
+	}
+
+	/************************
+	 * private functions
+	 ************************/
+
+	private function isBot(){
+		$bot = false;
+		
+		// check interested checkbox (simple honey pot)
+		IF(isset($_POST['interested'])) {
+		  $bot = true;
+		}
+		// return bot status
+		return $bot;
+	}
+
+	private function isHtml(){
+		IF($this->getValue('type') === 'html') {
+		  return true;
+		} else {
+		  return false;
+		}
+	}
+
+	private function readPost(){
+		// removes bad content - just a little protection - could be better
+		IF(isset($_POST['eventName'])) { 
+		  $this->eventName =  trim(strip_tags($_POST['eventName']));
+		}
+		IF(isset($_POST['senderName'])) { 
+		  $this->senderName =  trim(strip_tags($_POST['senderName']));
+		}
+		IF(isset($_POST['senderEmail'])) {
+		  $this->senderEmail =  trim(strip_tags(preg_replace("/[^0-9a-zA-ZäöüÄÖÜÈèÉéÂâáÁàÀíÍìÌâÂ@ \-\+\_\.]/", " ", $_POST['senderEmail'])));
+		}
+		IF(isset($_POST['validateEmail'])){
+		  $this->validateEmail = trim(strip_tags($_POST['validateEmail']));
+		}
+		IF(isset($_POST['senderPhone'])){
+		  $this->senderPhone = trim(strip_tags($_POST['senderPhone']));
+		}
+		IF(isset($_POST['numberOfTickets'])){
+		  $this->numberOfTickets = trim(strip_tags($_POST['numberOfTickets']));
+		}
+		IF(isset($_POST['paymentOption'])){
+		  $this->paymentOption = trim(strip_tags($_POST['paymentOption']));
+		}
+		IF(isset($_POST['otherPartyNames'])){
+		  $this->otherPartyNames = trim(strip_tags($_POST['otherPartyNames']));
+		}
+		IF(isset($_POST['pickupPoint'])){
+		  $this->pickupPoint = trim(strip_tags($_POST['pickupPoint']));
+		} 
+		IF(isset($_POST['sittingNear'])){
+		  $this->sittingNear = trim(strip_tags($_POST['sittingNear']));
+		}
+		IF(isset($_POST['specialNeeds'])){
+		  $this->specialNeeds = trim(strip_tags($_POST['specialNeeds']));
+		}
+	}
 
 	private function validatePost(){
 		global $L;
@@ -548,7 +823,7 @@ class pluginBookingForm extends Plugin {
 			$emailText .= $L->get('booking-needs')			.': '.$this->specialNeeds		."\r\n\r";
 
 			IF($this->getValue('gdpr-checkbox')){
-			$emailText .= strip_tags(sanitize::htmlDecode($this->getValue('gdpr-checkbox-text')))."\r\n\r";
+				$emailText .= strip_tags(sanitize::htmlDecode($this->getValue('gdpr-checkbox-text')))."\r\n\r";
 			}
 		}
 		return $emailText;
@@ -580,38 +855,38 @@ class pluginBookingForm extends Plugin {
 
 		// email headers
 
-				IF ($SentReceipt) {
-					switch ($sendFrom)
-					{
-						case "fromTo":
-							$email_headers	= "From: $subject <"		. $adminEmail	.">\r\n";
-							$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
-							break;
-						case "fromDomain":
-							$email_headers	= "From: $subject <"		. $domainEmail	.">\r\n";
-							$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
-							break;
-						default: // fromUser
-							$email_headers	= "From: $subject <"		. $adminEmail	.">\r\n";
-							$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
-					}
-				}
-				ELSE {
-					switch ($sendFrom)
-					{
-						case "fromTo":
-							$email_headers	= "From: $senderName <"		. $adminEmail	.">\r\n";
-							$email_headers .= "Reply-To: $senderName <"	. $senderEmail	.">\r\n";
-							break;
-						case "fromDomain":
-							$email_headers	= "From: $senderName <"		. $domainEmail	.">\r\n";
-							$email_headers .= "Reply-To: $senderName <"	. $senderEmail	.">\r\n";
-							break;
-						default: // fromUser
-							$email_headers	= "From: $senderName <"		. $senderEmail	.">\r\n";
-							$email_headers .= "Reply-To: $subject <"	. $senderEmail	.">\r\n";
-					}
-				}
+		IF ($SentReceipt) {
+			switch ($sendFrom)
+			{
+				case "fromTo":
+					$email_headers	= "From: $subject <"		. $adminEmail	.">\r\n";
+					$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
+					break;
+				case "fromDomain":
+					$email_headers	= "From: $subject <"		. $domainEmail	.">\r\n";
+					$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
+					break;
+				default: // fromUser
+					$email_headers	= "From: $subject <"		. $adminEmail	.">\r\n";
+					$email_headers .= "Reply-To: $subject <"	. $adminEmail	.">\r\n";
+			}
+		}
+		ELSE {
+			switch ($sendFrom)
+			{
+				case "fromTo":
+					$email_headers	= "From: $senderName <"		. $adminEmail	.">\r\n";
+					$email_headers .= "Reply-To: $senderName <"	. $senderEmail	.">\r\n";
+					break;
+				case "fromDomain":
+					$email_headers	= "From: $senderName <"		. $domainEmail	.">\r\n";
+					$email_headers .= "Reply-To: $senderName <"	. $senderEmail	.">\r\n";
+					break;
+				default: // fromUser
+					$email_headers	= "From: $senderName <"		. $senderEmail	.">\r\n";
+					$email_headers .= "Reply-To: $subject <"	. $senderEmail	.">\r\n";
+			}
+		}
 
 		$email_headers .= 'MIME-Version: 1.0' ."\r\n";
 
@@ -626,10 +901,10 @@ class pluginBookingForm extends Plugin {
 
 		// send email via sendmail => mail(to,subject,message,headers,parameters);
 		IF ($SentReceipt) {
-			$success = mail($senderName	."<". $senderEmail.">", 								// To:		Sent receipt back to user
-							$subject	.' ('.$this->eventName.')', 							// Subject:	Same Subject
+			$success = mail($senderName	."<". $senderEmail.">", 									// To:		Sent receipt back to user
+							$subject	.' ('.$this->eventName.')', 								// Subject:	Same Subject
 							$L->get('booking-confirmation-email')."\r\n\r\n".$this->getEmailText(),	// Same message with prefix, eg "thank you for booking"
-							$email_headers														// Same From: ReplyTo
+							$email_headers															// Same From: ReplyTo
 							);
 		}
 		else {
@@ -678,27 +953,26 @@ class pluginBookingForm extends Plugin {
 			$mail->Username = $this->getValue('username');
 			#Function is needed IF Password contains special characters like &
 			$mail->Password = html_entity_decode($this->getValue('password'));
-
 			$mail->CharSet = CHARSET;
 			$mail->isHTML($this->isHTML());
 
 			switch ($sendFrom) // Set email FROM address
-				{
-					case "fromTo": 
-						$mail->setFrom($this->getValue('email'));
-						$mail->addReplyTo($this->senderEmail, $this->senderName);
-						break;
-					case "fromDomain":
-						$mail->setFrom($this->getValue('domainAddress'));
-						$mail->addReplyTo($this->senderEmail, $this->senderName);
-						break;		
-					default: // fromUser
-						$mail->setFrom($this->senderEmail, $this->senderName); 
-				}
+			{
+				case "fromTo": 
+					$mail->setFrom($this->getValue('email'));
+					$mail->addReplyTo($this->senderEmail, $this->senderName);
+					break;
+				case "fromDomain":
+					$mail->setFrom($this->getValue('domainAddress'));
+					$mail->addReplyTo($this->senderEmail, $this->senderName);
+					break;		
+				default: // fromUser
+					$mail->setFrom($this->senderEmail, $this->senderName); 
+			}
 
-			  $mail->addAddress($this->getValue('email'));
-			  $mail->Subject = $this->getSubject();
-			  $mail->Body = $this->getEmailText();
+			$mail->addAddress($this->getValue('email'));
+			$mail->Subject = $this->getSubject();
+			$mail->Body = $this->getEmailText();
 
 			IF($mail->send()) {
 				$success = true;
@@ -724,7 +998,6 @@ class pluginBookingForm extends Plugin {
 
 		return $success;
 	}
-
 
 	private function clearForm(){
 		$this->eventName		= '';  
@@ -781,17 +1054,17 @@ class pluginBookingForm extends Plugin {
 		IF ( !file_exists($logEventFile) ) {
 			$fileHeader = array('EventName','BookerName','BookerEmail','BookerPhone','Tickets','PickupPoint',
 								'PayMethod','OtherNames','SitNear','SpecialNeeds','TimeBooked');
-			$handle = fopen($logEventFile, "a");
-			fputcsv($handle, $fileHeader);
-			fclose($handle);		
+			$csvLine = fopen($logEventFile, "a");
+			fputcsv($csvLine, $fileHeader);
+			fclose($csvLine);		
 		}
 
 		$booking = array($this->eventName,$this->senderName,$this->senderEmail,$this->senderPhone,$this->numberOfTickets,$this->pickupPoint
 						,$this->paymentOption,$this->otherPartyNames,$this->sittingNear,$this->specialNeeds,$currentTime );
 
-		$handle = fopen($logEventFile, "a");
-		fputcsv($handle, $booking );
-		fclose($handle);
+		$csvLine = fopen($logEventFile, "a");
+		fputcsv($csvLine, $booking );
+		fclose($csvLine);
 
 	}
 }

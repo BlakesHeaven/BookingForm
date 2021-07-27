@@ -14,6 +14,9 @@
 	"html":							"HTML format",
 	"text":							"TEXT format",
 	"static-pages":					"Static pages",
+	"bookings-display-page-label":	"Select booking display page/location",
+	"bookings-display-page-tip":	"This will set the location where you'd like to see who has booked what.",
+	"bookings-display-page":		"Select from the list below",
 	
 	"list-events-label":			"List of events:",
 	"no-events-to-display":			"Sorry, there are no forcoming events Listed at the moment.",
@@ -27,7 +30,7 @@
 	"validate-email-label":			"Email validation",
 	"validate-email-placeholder":	"Sorry for asking you to type the email again; it's trying to prevent typos.",
 	
-	"your-phone-label":				"Your mobile/phone number:",
+	"your-phone-label":				"Your phone or mobile number:",
 	"your-phone-placeholder":		"eg H:xxxxx xxxxx &/or M:yyyyy yyyyyy", 
 	"number-of-tickets-label":		"How many tickets do you need?",
 	"pickup-point-label":			"Pickup point:",  
@@ -36,7 +39,7 @@
 	"other-party-names-placeholder":"Enter a comma separated list of all other people you are getting tickets for.",
 	
 	"sit-near-label":				"Would like to sit near?", 
-	"sitting-near-placeholder":		"This might be someone booking seperatly; otherwise leave it as it is.",
+	"sitting-near-placeholder":		"This might be someone booking separately; otherwise leave it as it is.",
 	"special-needs-label":			"Special Needs?", 
 	"special-needs-placeholder":	"Otherwise leave it as it is.",
 	
@@ -70,7 +73,7 @@
 	"accept-privacy-policy":		"Please accept the privacy policy.",
 	"robot-check-warning":			"Please activate the checkbox, &quot;I'm not a robot&quot;.",
 	
-	"booking-confirmation-email":	"Thank you for your booking.<br>You will be contacted as soon as possible.",
+	"booking-confirmation-email":	"Thank you for your booking. You will be contacted as soon as possible.",
 	"booking-confirmation-screen":	"Thank you for your booking.<br>Please check your email inbox for your confirmation email.<br>You will be contacted as soon as possible.",
 	"sending-email-error":			"Sorry, for some reason the mail server did not accept the mail for sending. Please try again later.",
 	"last-error":					"The last Error was",
@@ -98,7 +101,7 @@
 
 	"display-booking-logs-title":	"Booking Logs and Display Options",
 	"display-booking-logs-desc":	"The booking details are stored in logs and displayed for administrators to check.",
-	"number-of-booking-logs-to-display-label": "Number of log files to display:",
+	"number-of-booking-logs-to-display-label": "Number of log files to display on booking infomation page:",
 	"number-of-booking-logs-to-display-tip": "Display only the most recently modified log files.",
 	
 	"booking-form-config-title":	"Booking Form Configuration",

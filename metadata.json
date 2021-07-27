@@ -2,9 +2,9 @@
 	"author": "David Blake",
 	"email": "",
 	"website": "https://github.com/BlakesHeaven/BookingForm",
-	"version":"1.2.0",
-	"releaseDate": "2019-08-14",
+	"version":"3.2.0",
+	"releaseDate": "2021-07-27",
 	"license": "MIT",
-	"compatible": "3.9.2",
+	"compatible": "3.13.1",
 	"notes": "Plugin based on Contact3 plugin by Novafacile (https://www.novafacile.com)"
 }

@@ -12,7 +12,8 @@
 .BookingForm-plugin .divTableCell, .divTableHead {
 	border: 0px solid #999999;
 	display: table-cell;
-	padding: 3px 10px;
+	padding: 3px 10px 3px 0px;
+	width: 50%;
 }
 .BookingForm-plugin .divTableHeading {
 	background-color: #EEE;
@@ -26,4 +27,13 @@
 }
 .BookingForm-plugin .divTableBody {
 	display: table-row-group;
+}
+
+.BookingForm-plugin .labelStyle {
+	font-weight: bold;
+}
+
+tfoot {
+	background: lightgrey;
+	vertical-align: bottom;
 }
