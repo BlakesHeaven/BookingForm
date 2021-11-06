@@ -7,9 +7,9 @@
 
 	"contact":						"Contact",
 	"select-content-label":			"Select a static page for the booking form",
-	"select-content-tip":			"The list is based only on published content. The contact form will be positioned below it.",   
-	"results-file-label":			"Booking Logs", 
-	"results-file-tip":				"The following data is stored in txt files on the web server, and are displayed in file date decending order.", 
+	"select-content-tip":			"The list is based only on published content. The contact form will be positioned below it.",
+	"results-file-label":			"Booking Logs",
+	"results-file-tip":				"The following data is stored in txt files on the web server, and are displayed in file date decending order.",
 	"content-type":					"Content type",
 	"html":							"HTML format",
 	"text":							"TEXT format",
@@ -17,7 +17,7 @@
 	"bookings-display-page-label":	"Select booking display page/location",
 	"bookings-display-page-tip":	"This will set the location where you'd like to see who has booked what.",
 	"bookings-display-page":		"Select from the list below",
-	
+
 	"list-events-label":			"List of events:",
 	"no-events-to-display":			"Sorry, there are no forcoming events Listed at the moment.",
 	"booking-form-label":			"Booking Form",
@@ -29,20 +29,20 @@
 	"your-email-placeholder":		"This is the address you want to be contacted with.",
 	"validate-email-label":			"Email validation",
 	"validate-email-placeholder":	"Sorry for asking you to type the email again; it's trying to prevent typos.",
-	
+
 	"your-phone-label":				"Your phone or mobile number:",
-	"your-phone-placeholder":		"eg H:xxxxx xxxxx &/or M:yyyyy yyyyyy", 
+	"your-phone-placeholder":		"eg H:xxxxx xxxxx &/or M:yyyyy yyyyyy",
 	"number-of-tickets-label":		"How many tickets do you need?",
-	"pickup-point-label":			"Pickup point:",  
+	"pickup-point-label":			"Pickup point:",
 	"payment-option-label":			"Select how you wish to pay:",
 	"other-party-names-label":		"Name(s) of other members of your party?",
-	"other-party-names-placeholder":"Enter a comma separated list of all other people you are getting tickets for.",
-	
-	"sit-near-label":				"Would like to sit near?", 
+	"other-party-names-placeholder":"Please put a comma after each name of all other people you are getting tickets for.",
+
+	"sit-near-label":				"Would like to sit near?",
 	"sitting-near-placeholder":		"This might be someone booking separately; otherwise leave it as it is.",
-	"special-needs-label":			"Special Needs?", 
+	"special-needs-label":			"Special Needs?",
 	"special-needs-placeholder":	"Otherwise leave it as it is.",
-	
+
 	"booking-event":				"Event Booked",
 	"booking-name":					"Booking Name",
 	"booking-email":				"Email Address",
@@ -54,7 +54,7 @@
 	"booking-others":				"Others in Party",
 	"booking-sit-near":				"Sit-near Request",
 	"booking-needs":				"Special Needs",
-	
+
 	"your-name":					"Name",
 	"your-email":					"Email Address",
 	"your-email-tip":				"This is the address you want the email to be sent TO.",
@@ -72,12 +72,12 @@
 	"tickets-not-equal-to-people":	"The number of tickets do not equal the total number in your party.<br>Please check you guest name list and that it is comma seperated.",
 	"accept-privacy-policy":		"Please accept the privacy policy.",
 	"robot-check-warning":			"Please activate the checkbox, &quot;I'm not a robot&quot;.",
-	
+
 	"booking-confirmation-email":	"Thank you for your booking. You will be contacted as soon as possible.",
 	"booking-confirmation-screen":	"Thank you for your booking.<br>Please check your email inbox for your confirmation email.<br>You will be contacted as soon as possible.",
 	"sending-email-error":			"Sorry, for some reason the mail server did not accept the mail for sending. Please try again later.",
 	"last-error":					"The last Error was",
-	
+
 	"email-subject":				"Email Subject",
 	"smtp-options":					"Please fill in the following values if you want to send messages by a smtp account.",
 	"smtp-host":					"SMTP Host",
@@ -93,7 +93,7 @@
 	"treasurer-address-tip":		"The address where cheques are to be sent. Displayed to the user when they select payment method and is included in their email booking.",
 	"bank-detail-pre-text":			"Bank to bank transfer: Pay into ",
 	"treasurer-address-pre-text":	"Cheque: Sent to ",
-	
+
 	"anti-spam-info":				"Enables Google reCAPTCHA v2 in contact form.<br>Before activation, you need to register your website at <a href='https://www.google.com/recaptcha' target='_blank'>Google reCaptcha</a>.<br>Choose Version 2. Both the <i>Site Key</i> and <i>Secret Key</i> are required.",
 	"activate-google-recaptcha-v2":	"Google reCAPTCHA v2",
 	"recaptcha-website-key":		"reCAPTCHA: Site Key",
@@ -103,10 +103,10 @@
 	"display-booking-logs-desc":	"The booking details are stored in logs and displayed for administrators to check.",
 	"number-of-booking-logs-to-display-label": "Number of log files to display on booking infomation page:",
 	"number-of-booking-logs-to-display-tip": "Display only the most recently modified log files.",
-	
+
 	"booking-form-config-title":	"Booking Form Configuration",
-	"booking-form-config-desc":		"Use the following fields to configure how emails are sent.",	
-	
+	"booking-form-config-desc":		"Use the following fields to configure how emails are sent.",
+
 	"send-from-which-address":		"Email sender address",
 	"send-from-which-address-tip":	"If possible, use the email address of the visitor. However, some hosts require an email address known on the server. In this case, you can choose between the recipients address (above) or a special sender email address (below) as the sender.",
 	"send-from-user":				"Email address from visitor",
